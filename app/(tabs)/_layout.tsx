@@ -1,8 +1,10 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
-import { Link, Tabs } from 'expo-router';
-import { Pressable, useColorScheme } from 'react-native';
+import {  Tabs } from 'expo-router';
+import {  useColorScheme } from 'react-native';
 
 import Colors from '../../constants/Colors';
+import ButtonLink from '../../components/ButtonLink';
+import { View } from '../../components/Themed';
 
 /**
  * You can explore the built-in icon families and icons on the web at https://icons.expo.fyi/
@@ -17,19 +19,20 @@ function TabBarIcon(props: {
 export default function TabLayout() {
   const colorScheme = useColorScheme();
 
-  const modalLink = () => (
-    <Link href="/modal" asChild>
-      <Pressable>
-        {({ pressed }) => (
-          <FontAwesome
-            name="info-circle"
-            size={25}
-            color={Colors[colorScheme ?? 'light'].text}
-            style={{ marginRight: 15, opacity: pressed ? 0.5 : 1 }}
-          />
-        )}
-      </Pressable>
-    </Link>
+  const aboutLink = () => (
+    <View style={{ flexDirection: 'row', backgroundColor: 'transparent' }}>
+      <ButtonLink
+        href="/about"
+        icon="info-circle"
+        style={{ backgroundColor: "transparent" }}
+      />
+      <ButtonLink
+        href="/settings"
+        icon="cogs"
+        style={{ backgroundColor: "transparent" }}
+        iconStyle={{ marginRight: 12 }}
+      />
+    </View>
   );
 
   return (
@@ -40,15 +43,15 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Tab One',
+          title: 'Dart\'s bli (alpha)',
           tabBarIcon: ({ color }) => <TabBarIcon name="home" color={color} />,
-          headerRight: modalLink
+          headerRight: aboutLink,
         }}
       />
       <Tabs.Screen
         name="two"
         options={{
-          title: 'Tab Two',
+          title: 'Météo',
           tabBarIcon: ({ color }) => <TabBarIcon name="code" color={color} />,
         }}
       />

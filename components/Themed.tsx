@@ -42,3 +42,15 @@ export function View(props: ViewProps) {
 
   return <DefaultView style={[{ backgroundColor }, style]} {...otherProps} />;
 }
+
+export function Title(props: ViewProps) {
+  const { style,  ...otherProps } = props;
+
+  return <Text style={[{ fontSize: 20, fontWeight: 'bold', marginTop: 20 }, style]} {...otherProps} />;
+}
+
+export function Container(props: ViewProps) {
+  const { style,  ...otherProps } = props;
+
+  return <View style={[{flex: 1, alignItems: 'center', justifyContent: 'center'}, style]} {...otherProps} />;
+}

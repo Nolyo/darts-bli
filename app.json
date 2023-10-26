@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "expo-getstarted",
-    "slug": "expo-getstarted",
+    "name": "dart's Bli",
+    "slug": "darts-bli",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -34,6 +34,20 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "b9155ece-75c3-472c-b5d4-8405eb6ec1f1"
+      }
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/b9155ece-75c3-472c-b5d4-8405eb6ec1f1"
     }
   }
 }
