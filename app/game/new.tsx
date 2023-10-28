@@ -5,18 +5,20 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { Container, Text, Title, View } from '../../components/Themed';
 import { useEffect, useId, useState } from 'react';
-import { useNavigation } from 'expo-router';
+import {router, useNavigation} from 'expo-router';
 import Game from '../../entities/game';
-import { PlayerType } from '../../types';
 import Player from '../../entities/player';
 
-
+export const PointsMode = {
+    '501': 501,
+    '301': 301,
+    'Capital': 1000,
+}
 
 export default function NewScreen() {
-  const id = useId();
   const navigation = useNavigation();
   const [players, setPlayers] = useState<Player[]>([]);
-  const [game] = useState<Game>(new Game(id));
+  const [game] = useState<Game>(new Game());
 
   useEffect(() => {
     navigation.setOptions({
@@ -28,11 +30,12 @@ export default function NewScreen() {
   }, [navigation]);
 
   const submit = async () => {
-    game.save();
+    await game.save();
+    router.push({pathname: '/game/[id]', params: {id: game.id}})
   }
 
   const addPlayer = () => {
-    const newPlayer = new Player(game.getNextPlayerId());
+    const newPlayer = new Player(game.getNextPlayerId(), game.type === 'Capital' ? 1000 : parseInt(game.type));
     game.addPlayer(newPlayer);
 
     refreshPlayers();
@@ -59,7 +62,7 @@ export default function NewScreen() {
           onSelect={(selectedItem: any) => {
             game.setType(selectedItem)
           }}
-          defaultValue={game.getType()}
+          defaultValue={game.type}
           defaultButtonText='Choisir un mode'
         />
 

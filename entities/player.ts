@@ -4,10 +4,10 @@ export default class Player {
     score: number;
     order: number;
 
-    constructor(id: number) {
+    constructor(id: number, score: number = 0) {
         this.id = id;
         this.name = "";
-        this.score = 0;
+        this.score = score;
         this.order = id;
     }
 
@@ -37,6 +37,12 @@ export default class Player {
 
     setOrder(order: number) {
         this.order = order;
+    }
+
+    hydrate(data: any) {
+        this.name = data.name;
+        this.score = data.score;
+        this.order = data.order;
     }
     
 }

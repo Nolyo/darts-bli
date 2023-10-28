@@ -12,7 +12,7 @@ export default function TabOneScreen() {
         Nouvelle partie
       </ButtonLink>
       <Separator />
-      <ButtonLink href='/game/new'>
+      <ButtonLink href='/game/find'>
         Chercher une partie
       </ButtonLink>
     </Container>
