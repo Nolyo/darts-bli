@@ -1,10 +1,9 @@
 import { SafeAreaView, StyleSheet, TextInput  } from 'react-native';
 import SelectDropdown from 'react-native-select-dropdown'
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
 
-import { Container, Text, Title, View } from '../../components/Themed';
-import { useEffect, useId, useState } from 'react';
+import { Container, Text, Title } from '../../components/Themed';
+import { useEffect, useState } from 'react';
 import {router, useNavigation} from 'expo-router';
 import Game from '../../entities/game';
 import Player from '../../entities/player';

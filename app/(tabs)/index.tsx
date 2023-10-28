@@ -1,5 +1,4 @@
-import { StyleSheet } from 'react-native';
-import { Container, Text, Title, View } from '../../components/Themed';
+import { Container, Title } from '../../components/Themed';
 import Separator from '../../components/Separator';
 import ButtonLink from '../../components/ButtonLink';
 

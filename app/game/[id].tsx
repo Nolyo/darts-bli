@@ -1,19 +1,18 @@
 import {Pressable, StyleSheet} from 'react-native';
 import {useLocalSearchParams, useNavigation} from 'expo-router';
 import {Container, Text, Title, View} from '../../components/Themed';
-import {useEffect, useReducer, useState} from "react";
+import {useEffect, useState} from "react";
 import Game from "../../entities/game";
-import Player from "../../entities/player";
 
 export default function GameId() {
     const {id} = useLocalSearchParams();
     const navigation = useNavigation();
-    const [game, setGame] = useState<Game>(new Game(id as string));
+    const [game] = useState<Game>(new Game(id as string));
     const [showMultiplier, setShowMultiplier] = useState<boolean>(false);
     const [isReady, setIsReady] = useState<boolean>(false);
     const [tempDart, setTempDart] = useState<number | null>(null);
     const arrayDarts = Array.from(Array(20).keys());
-    const [, forceUpdate] = useReducer(x => x + 1, 0);
+    //const [, forceUpdate] = useReducer(x => x + 1, 0);
 
     const startGame = async () => {
         await game.start().then(() => {
