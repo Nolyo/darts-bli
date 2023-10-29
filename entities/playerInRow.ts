@@ -22,10 +22,19 @@ export default class PlayerInRow {
 
     addDart(dart: DartsType) {
         if (this.darts.length === 3) {
-            throw new Error('Too many darts');
+            throw new Error('Trop de fléchettes jouées');
         }
 
         this.darts.push(dart);
+    }
+
+    removerLastDart() {
+        const dart = this.darts.pop();
+        if (!dart) {
+            throw new Error('No dart found');
+        }
+
+        return dart;
     }
 
     getScore() {

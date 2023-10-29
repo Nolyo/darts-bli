@@ -5,6 +5,6 @@ export type PlayerType = {
     order: number,
 }
 
-export type GameType = {id: string, players: PlayerType[], type: string}
+export type GameType = {id: string, players: PlayerType[], type: string, rows: any[]}
 
 export type DartsType = {score: number, multiplier: number}

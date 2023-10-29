@@ -1,14 +1,16 @@
-import {Pressable, SafeAreaView, StyleSheet} from 'react-native';
+import {Pressable, SafeAreaView, ScrollView, StyleSheet} from 'react-native';
 
 import {Container, Text, Title, View} from '../../components/Themed';
 import {useEffect, useState} from 'react';
 import {useNavigation, router} from 'expo-router';
 import Game from '../../entities/game';
 import {GameType} from "../../types";
+import BouncyCheckbox from "react-native-bouncy-checkbox";
 
 export default function NewScreen() {
     const navigation = useNavigation();
     const [games, setGames] = useState<GameType []>([]);
+    const [selectedGames, setSelectedGames] = useState<GameType []>([]);
 
     useEffect(() => {
         navigation.setOptions({
@@ -21,8 +23,14 @@ export default function NewScreen() {
     }, []);
 
     async function getGames() {
+        const _games = await Game.getAllFromStorage();
         // @ts-ignore
-        setGames(await Game.getAllFromStorage())
+        setGames(_games)
+    }
+
+    async function deleteGames() {
+        await Game.multiRemoveFromStorage(selectedGames.map((game) => game.id));
+        await getGames();
     }
 
     return (
@@ -36,19 +44,39 @@ export default function NewScreen() {
                 <>
                     <Title style={{marginVertical: 20}}>Reprendre une games</Title>
                     <SafeAreaView style={{...styles.flexBox, borderTopColor: '#334155', borderTopWidth: 1}}>
-                        <View style={{width: "100%"}}>
+                        <ScrollView style={{width: '100%', paddingHorizontal: 10}}>
                             {games.map((game) => (
+                                <View key={game.id} style={{
+                                    flexDirection: 'row',
+                                    borderBottomColor: '#334155',
+                                    borderBottomWidth: 1,
+                                }}>
+                                    <BouncyCheckbox
+                                        size={25}
+                                        fillColor="#991b1b"
+                                        unfillColor="#44403c"
+                                        iconStyle={{borderColor: "red"}}
+                                        innerIconStyle={{borderWidth: 2}}
+                                        onPress={(isChecked: boolean) => {
+                                            if (isChecked) {
+                                                setSelectedGames([...selectedGames, game]);
+                                            } else {
+                                                setSelectedGames(selectedGames.filter((selectedGame) => selectedGame.id !== game.id));
+                                            }
+                                        }}
+                                    />
                                     <Pressable
-                                        key={game.id}
-                                        onPress={() => router.push({pathname: '/game/[id]', params: {id: game.id}})}>
-                                        <View
-                                            style={{
-                                                ...styles.flexBoxCenter,
-                                                flexDirection: 'row',
-                                                borderBottomColor: '#334155',
-                                                borderBottomWidth: 1
-                                            }}
-                                        >
+                                        onPress={() => router.push({
+                                            pathname: '/game/[id]',
+                                            params: {id: game.id}
+                                        })}
+                                        style={{flex: 1}}>
+                                        <View style={{
+                                            flexDirection: 'row',
+                                            alignItems: 'center',
+                                            justifyContent: 'space-between',
+                                            paddingVertical: 10,
+                                        }}>
                                             <Text style={{
                                                 color: '#fff',
                                                 marginVertical: 20,
@@ -66,11 +94,29 @@ export default function NewScreen() {
                                                     return player.name + ', '
                                                 })}
                                             </Text>
+                                            <Text style={{color: '#fff', marginLeft: 20}}>
+                                                {game.rows.length} tour(s)
+                                            </Text>
                                         </View>
                                     </Pressable>
+                                </View>
 
-                                )
-                            )}
+                            ))}
+                        </ScrollView>
+                        <View style={{
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                            display: selectedGames.length > 0 ? 'flex' : 'none',
+                            marginTop: 20,
+                        }}>
+                            <Text onPress={deleteGames}
+                                  style={{
+                                      paddingHorizontal: 10,
+                                      paddingVertical: 10,
+                                      backgroundColor: '#991b1b',
+                                      marginRight: 10
+                                  }}>Effacer
+                            </Text>
                         </View>
                     </SafeAreaView>
                 </>

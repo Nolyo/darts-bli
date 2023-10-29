@@ -8,19 +8,22 @@ export default class Game {
     status: string;
     players: Player[];
     rows: PlayerInRow[][];
+    ranking: Player[];
 
     constructor(
         id?: string | undefined,
         type = '501',
         status = 'pending',
         players: Player[] = [],
-        rows: PlayerInRow[][] = []
+        rows: PlayerInRow[][] = [],
+        ranking: Player[] = []
     ) {
         this.id = id || this.generateId();
         this.type = type;
         this.status = status;
         this.players = players;
         this.rows = rows;
+        this.ranking = ranking;
     }
 
     generateId(length: number = 6) {
@@ -37,6 +40,12 @@ export default class Game {
 
     getPlayers() {
         return this.players;
+    }
+
+    currentPlayer() {
+        return this.players.find((player) => {
+            return this?.getCurrentPlayerInRow()?.player?.id === player.id;
+        });
     }
 
     addPlayer(player: Player) {
@@ -77,8 +86,11 @@ export default class Game {
             return newPlayer;
         });
         this.rows = data.rows.map((row: any) => {
-            return row.map((playerInRow: any) =>
-                new PlayerInRow(new Player(playerInRow.player.id), playerInRow.player.score, playerInRow.darts));
+            return row.map((playerInRow: any) => {
+                const _player = new Player(playerInRow.player.id);
+                _player.hydrate(playerInRow.player);
+                return new PlayerInRow(_player, playerInRow.score, playerInRow.darts)
+            });
         });
     }
 
@@ -121,33 +133,46 @@ export default class Game {
     }
 
     async addDart(tempDart: number, _multiplier: number) {
-        const dart = {
-            score: tempDart,
-            multiplier: _multiplier,
-        };
-        this.getCurrentPlayerInRow().addDart(dart);
-        this.getCurrentPlayerInRow().setScore(tempDart * _multiplier);
+        try {
+            const dart = {
+                score: tempDart,
+                multiplier: _multiplier,
+            };
+            
+            this.getCurrentPlayerInRow().addDart(dart);
+            this.getCurrentPlayerInRow().setScore(tempDart * _multiplier);
 
+            const player = this.getPlayerById(this.getCurrentPlayerInRow().player.id);
+            player?.setScore(player?.getScore() - (tempDart * _multiplier));
+
+            if (player?.getScore() === 0) {
+                this.ranking.push(player);
+            }
+
+            await this.save();
+
+        } catch (error) {
+            alert(error);
+        }
+    }
+
+    playerHasAgainDart() {
+        return this.getCurrentPlayerInRow().getDartsCount() < 3;
+    }
+
+
+    async removeLastDart() {
+        const dart = this.getCurrentPlayerInRow().removerLastDart();
         const player = this.getPlayerById(this.getCurrentPlayerInRow().player.id);
-        player?.setScore(player?.getScore() - (tempDart * _multiplier));
-
-        if (player?.getScore() === 0) {
-            console.log('player win');
-        }
-
-        if (this.getCurrentPlayerInRow().getDartsCount() === 3) {
-            await this.nextPlayer()
-        }
+        player?.setScore(player?.getScore() + (dart.score * dart.multiplier));
 
         await this.save();
     }
 
-    refresh(){
+    refresh() {
         return this;
     }
 
-    // si c est le dernier joueur de la row on ajoute une row
-    // sinon on ajoute une playerInRow dans la current row
     async nextPlayer() {
         const player = this.getNextPlayerToPlay();
         if (!player) {
@@ -156,10 +181,8 @@ export default class Game {
         const playerInRow = new PlayerInRow(player, 0, []);
 
         if (this.getCurrentRow().length === this.players.length) {
-            console.log('new row')
             this.rows.push([playerInRow]);
         } else {
-            console.log('new player in row')
             this.getCurrentRow().push(playerInRow);
         }
     }
@@ -167,6 +190,13 @@ export default class Game {
     async save() {
         await AsyncStorage.setItem(this.id, JSON.stringify(this));
         console.log('game saved');
+    }
+
+    async checkSetup() {
+        if (this.players.length < 1) {
+            throw new Error('Pas assez de joueur (1 min)');
+        }
+        this.players = this.players.filter((player) => player.name !== '');
     }
 
     static async getAllFromStorage() {
@@ -180,7 +210,7 @@ export default class Game {
             })
             .then((keyValuePairs) => {
                 return keyValuePairs.map((keyValuePair) => {
-                    const [id, value] = keyValuePair;
+                    const [_id, value] = keyValuePair;
                     if (!value) {
                         return;
                     }
@@ -202,6 +232,16 @@ export default class Game {
                 console.error(error);
             });
 
+    }
+
+    static async multiRemoveFromStorage(ids: string[]) {
+        return await AsyncStorage.multiRemove(ids)
+            .then(() => {
+                return true;
+            })
+            .catch((error) => {
+                console.error(error);
+            });
     }
 
     static async deleteByIdFromStorage(id: string) {
