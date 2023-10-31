@@ -28,8 +28,7 @@ export default function NewScreen() {
 
     async function getGames() {
         const _games = await Game.getAllFromStorage();
-        // @ts-ignore
-        setGames(_games)
+        setGames(_games || []);
     }
 
     async function deleteGames() {
