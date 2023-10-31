@@ -15,7 +15,7 @@ export function TabBarIcon(props: {
     style?: {};
     onPress?: () => void;
 }) {
-    return <FontAwesome size={28} style={{marginBottom: -3}} {...props} />;
+    return <FontAwesome size={28} style={{marginBottom: -3, marginRight: 10 }} {...props} />;
 }
 
 export default function TabLayout() {

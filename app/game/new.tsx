@@ -16,6 +16,7 @@ export const PointsMode = {
 
 export default function NewScreen() {
     const navigation = useNavigation();
+
     const [players, setPlayers] = useState<Player[]>([]);
     const [game] = useState<Game>(new Game());
 

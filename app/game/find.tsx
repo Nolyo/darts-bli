@@ -1,16 +1,20 @@
-import {Pressable, SafeAreaView, ScrollView, StyleSheet} from 'react-native';
-
-import {Container, Text, Title, View} from '../../components/Themed';
-import {useEffect, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {useNavigation, router} from 'expo-router';
-import Game from '../../entities/game';
-import {GameType} from "../../types";
+import {Pressable, SafeAreaView, ScrollView, ImageBackground, useColorScheme} from 'react-native';
 import BouncyCheckbox from "react-native-bouncy-checkbox";
 
+import {Container, Text, useThemeColor, View} from '../../components/Themed';
+import Game from '../../entities/game';
+import {GameType} from "../../types";
+import styles from "../../constants/Css";
+
 export default function NewScreen() {
+
     const navigation = useNavigation();
     const [games, setGames] = useState<GameType []>([]);
     const [selectedGames, setSelectedGames] = useState<GameType []>([]);
+    const backgroundColor = useThemeColor({}, 'background');
+    const theme = useColorScheme();
 
     useEffect(() => {
         navigation.setOptions({
@@ -31,26 +35,29 @@ export default function NewScreen() {
     async function deleteGames() {
         await Game.multiRemoveFromStorage(selectedGames.map((game) => game.id));
         await getGames();
+        setSelectedGames([]);
     }
 
     return (
-        <Container style={{justifyContent: 'flex-start'}}>
+        <Container>
             {games.length === 0 && (
                 <View style={styles.flexBoxCenter}>
                     <Text style={styles.noGame}>Aucune game trouvée</Text>
                 </View>
             )}
             {games.length > 0 && (
-                <>
-                    <Title style={{marginVertical: 20}}>Reprendre une games</Title>
-                    <SafeAreaView style={{...styles.flexBox, borderTopColor: '#334155', borderTopWidth: 1}}>
-                        <ScrollView style={{width: '100%', paddingHorizontal: 10}}>
+                <ImageBackground
+                    source={require('../../assets/images/dartsbbli.png')}
+                    resizeMode="cover"
+                    style={styles.bgImage}
+                >
+                    <SafeAreaView style={{...styles.flexBox, borderTopColor: '#334155', borderTopWidth: 1, backgroundColor}}>
+                        <ScrollView style={{width: '100%'}}>
                             {games.map((game) => (
-                                <View key={game.id} style={{
-                                    flexDirection: 'row',
-                                    borderBottomColor: '#334155',
-                                    borderBottomWidth: 1,
-                                }}>
+                                <View key={game.id} style={[
+                                    styles.card,
+                                    {backgroundColor, marginVertical: 10}
+                                ]}>
                                     <BouncyCheckbox
                                         size={25}
                                         fillColor="#991b1b"
@@ -66,6 +73,9 @@ export default function NewScreen() {
                                         }}
                                     />
                                     <Pressable
+                                        onLongPress={() => {
+                                            alert('Appuies brievement dessus pour continuer la partie');
+                                        }}
                                         onPress={() => router.push({
                                             pathname: '/game/[id]',
                                             params: {id: game.id}
@@ -76,16 +86,17 @@ export default function NewScreen() {
                                             alignItems: 'center',
                                             justifyContent: 'space-between',
                                             paddingVertical: 10,
+                                            backgroundColor: 'transparent'
+
                                         }}>
                                             <Text style={{
-                                                color: '#fff',
                                                 marginVertical: 20,
                                                 fontWeight: 'bold',
                                                 marginHorizontal: 20
                                             }}>
                                                 {game.type}
                                             </Text>
-                                            <Text style={{color: '#fff'}}>
+                                            <Text>
                                                 {game.players.map((player, index) => {
                                                     if (index === game.players.length - 1) {
                                                         return player.name;
@@ -94,13 +105,12 @@ export default function NewScreen() {
                                                     return player.name + ', '
                                                 })}
                                             </Text>
-                                            <Text style={{color: '#fff', marginLeft: 20}}>
+                                            <Text style={{marginLeft: 20}}>
                                                 {game.rows.length} tour(s)
                                             </Text>
                                         </View>
                                     </Pressable>
                                 </View>
-
                             ))}
                         </ScrollView>
                         <View style={{
@@ -119,15 +129,8 @@ export default function NewScreen() {
                             </Text>
                         </View>
                     </SafeAreaView>
-                </>
+                </ImageBackground>
             )}
-
         </Container>
     );
 }
-
-const styles = StyleSheet.create({
-    noGame: {color: '#b91c1c', marginVertical: 20, fontSize: 26},
-    flexBoxCenter: {flex: 1, alignItems: 'center', justifyContent: 'center'},
-    flexBox: {flex: 1, alignItems: 'center', width: '100%'},
-});
