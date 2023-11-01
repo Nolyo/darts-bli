@@ -1,8 +1,8 @@
-import { Pressable, StyleSheet } from 'react-native';
-import { Text } from './Themed';
-import { Link } from 'expo-router';
+import {Pressable, StyleSheet, useColorScheme} from 'react-native';
+import {Text} from './Themed';
+import {Link} from 'expo-router';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
-import { StyleProp, ViewStyle, TextStyle } from 'react-native';
+import {StyleProp, ViewStyle, TextStyle} from 'react-native';
 
 type Props = {
     href: any;
@@ -14,26 +14,28 @@ type Props = {
 };
 
 export default function ButtonLink(props: Props) {
+    const theme = useColorScheme();
+
     return (
-        <Link
-            href={props.href}
-            style={[styles.button, props.style]}
-            asChild={props.asChild}
-        >
-            {props.children ? <Text>{props.children}</Text> : null}
-            {props.icon ? (
-                <Pressable>
-                    {({ pressed }) => (
+        <Pressable>
+            {({pressed}) => (
+                <Link
+                    href={props.href}
+                    style={[styles.button, props.style]}
+                    asChild={props.asChild}
+                >
+                    {props.children ? <Text>{props.children}</Text> : null}
+                    {props.icon ? (
                         <FontAwesome
                             name={props.icon}
                             size={25}
-                            color="#fff"
-                            style={[{ opacity: pressed ? 0.5 : 1 }, props.iconStyle]}
+                            color={theme === 'dark' ? '#fff' : '#000'}
+                            style={[{opacity: pressed ? 0.5 : 1}, props.iconStyle]}
                         />
-                    )}
-                </Pressable>
-            ): null}
-        </Link>
+                    ) : null}
+                </Link>
+            )}
+        </Pressable>
     );
 }
 
