@@ -37,6 +37,10 @@ export default class PlayerInRow {
         return dart;
     }
 
+    getLastDart() {
+        return this.darts[this.darts.length - 1];
+    }
+
     getScore() {
         return this.score;
     }

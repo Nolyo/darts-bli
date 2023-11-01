@@ -354,7 +354,6 @@ export default function GameId() {
                     </View>
                 )}
 
-
                 {showRanking && (
                     <View style={styles.modalSettings}>
                         <Container style={{justifyContent: 'flex-start', alignItems: 'stretch'}}>

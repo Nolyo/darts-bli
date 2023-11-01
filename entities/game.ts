@@ -2,6 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import Player from './player';
 import PlayerInRow from "./playerInRow";
 import {DartsType} from "../types";
+import DefaultDarts from "../constants/DefaultDarts";
 
 export default class Game {
     id: string;
@@ -125,7 +126,7 @@ export default class Game {
             const lastPlayerOrder = lastPlayer.order;
 
             if (lastPlayerOrder === this.players.length) {
-                return this.players.find((player) =>  player.order === 1);
+                return this.players.find((player) => player.order === 1);
             }
 
             return this.players.find((player) => player.score > 0 && player.order === lastPlayerOrder + 1);
@@ -133,7 +134,7 @@ export default class Game {
     }
 
     getPlayerOrderByScore() {
-       return this.players.sort((a, b) => a.score - b.score);
+        return this.players.sort((a, b) => a.score - b.score);
     }
 
     async start() {
@@ -187,13 +188,11 @@ export default class Game {
     }
 
     async alertFinish() {
-        if (this.ranking.length === this.players.length) {
+        if (this.ranking.length === this.players.length || this.isFinishAtFirst) {
             this.status = 'finished';
-            alert('Partie terminée');
-        }
-
-        if (this.ranking.length === 1) {
-            alert(`${this.ranking[0].name} a gagné`);
+            alert(`${this.ranking[0].name} a gagné, la partie est finie`);
+        } else if (this.ranking.length === 1) {
+            alert(`${this.ranking[0].name} a gagné, la partie continue`);
         }
     }
 
@@ -237,6 +236,8 @@ export default class Game {
             return false;
         }
 
+        if (!this.finishValide)
+
         return true;
     }
 
@@ -248,23 +249,31 @@ export default class Game {
         return (this.currentPlayer()?.getScore() || 0) < 0;
     }
 
+    finishValide() {
+        const playerInRow = this.getCurrentPlayerInRow();
+        const player = this.getPlayerById(playerInRow.player.id);
+        const lastDart = playerInRow.getLastDart();
+        if (!player) {
+            throw new Error('Erreur ptest.playernotfound');
+        }
+        if (player.getScore() !== 0) {
+            return true;
+        }
+        if (this.finishType === 'double') {
+            return lastDart.multiplier == 2 || lastDart.multiplier === 3;
+        }
+    }
+
     playerFinishIsValid(player: Player, dart: DartsType) {
         if (player.getScore() !== 0) {
             return false;
         }
 
-        if (this.finishType === 'classic') {
-            return true;
-        }
-
         if (this.finishType === 'double') {
-            if (dart.multiplier === 1) {
-                alert('Vous devez finir avec un double, 0 point attribué');
-            }
             return dart.multiplier === 2 || dart.multiplier === 3;
         }
 
-        return false;
+        return true;
     }
 
     async removeLastDart() {
@@ -273,6 +282,10 @@ export default class Game {
         player?.setScore(player?.getScore() + (dart.score * dart.multiplier));
         this.getCurrentPlayerInRow().setScore(this.getCurrentPlayerInRow().getScore() - (dart.score * dart.multiplier));
         await this.save();
+    }
+
+    getLastDart() {
+        return this.getCurrentPlayerInRow().getLastDart();
     }
 
     refresh() {
@@ -295,20 +308,7 @@ export default class Game {
 
         if (player.getScore() === 0) {
             playerInRow.setScore(0);
-            playerInRow.darts = [
-                {
-                    score: 0,
-                    multiplier: 0,
-                },
-                {
-                    score: 0,
-                    multiplier: 0,
-                },
-                {
-                    score: 0,
-                    multiplier: 0,
-                },
-            ];
+            playerInRow.darts = DefaultDarts;
         }
 
         if (this.getCurrentRow().length === this.players.length) {
