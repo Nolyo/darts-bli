@@ -52,7 +52,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: "Dart's bli (alpha)",
+          title: "Dart's bli",
           tabBarIcon: ({ color }) => <TabBarIcon name="home" color={color} />,
           headerRight: aboutLink,
         }}

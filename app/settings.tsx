@@ -117,7 +117,7 @@ export default function SettingsScreen() {
               ]}
             >
               <Text style={styles.aboutLabel}>Version</Text>
-              <Text style={styles.aboutValue}>1.0.0 (Alpha)</Text>
+              <Text style={styles.aboutValue}>1.1.0 (Beta)</Text>
             </View>
 
             <View style={[styles.aboutItem, styles.aboutItemLast]}>
