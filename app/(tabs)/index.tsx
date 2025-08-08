@@ -1,43 +1,63 @@
-import {Container, View} from '../../components/Themed';
-import Separator from '../../components/Separator';
-import ButtonLink from '../../components/ButtonLink';
-import {StyleSheet} from "react-native";
+import { Container, View } from "../../components/Themed";
+import { StyleSheet, Dimensions } from "react-native";
 import React from "react";
-import {ImageBackground} from "react-native";
+import { ImageBackground } from "react-native";
+import { Button } from "../../components/ui/Button";
+import { router } from "expo-router";
+
+const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
 
 export default function TabOneScreen() {
+  return (
+    <ImageBackground
+      source={require("../../assets/images/dartsbbli.png")}
+      resizeMode="cover"
+      style={styles.image}
+      imageStyle={styles.backgroundImage}
+    >
+      <View style={styles.container}>
+        <Button
+          title="🎯 Nouvelle partie"
+          onPress={() => router.push("/game/new")}
+          variant="primary"
+          size="lg"
+          style={styles.button}
+        />
 
-    return (
-        <Container style={styles.container}>
-            <ImageBackground
-                source={require('../../assets/images/dartsbbli.png')}
-                resizeMode="cover"
-                style={styles.image}
-            >
-                <View style={styles.container}>
-                    <ButtonLink href='/game/new'>
-                        Nouvelle partie
-                    </ButtonLink>
-                    <Separator/>
-                    <ButtonLink href='/game/find' style={{color: '#fff'}}>
-                        Chercher une partie
-                    </ButtonLink>
-                </View>
-            </ImageBackground>
-        </Container>
-    );
+        <Button
+          title="🔍 Chercher une partie"
+          onPress={() => router.push("/game/find")}
+          variant="outline"
+          size="lg"
+          style={styles.button}
+        />
+      </View>
+    </ImageBackground>
+  );
 }
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: '#0553',
-    },
-    image: {
-        flex: 1,
-        width: '100%',
-        backgroundColor: '#0553',
-
-    },
+  container: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.4)",
+    paddingHorizontal: 32,
+    gap: 24,
+  },
+  image: {
+    width: screenWidth,
+    height: screenHeight,
+    flex: 1,
+  },
+  backgroundImage: {
+    opacity: 0.8,
+    width: "105%",
+    height: "100%",
+    marginLeft: "-5%",
+    marginTop: "-5%",
+  },
+  button: {
+    width: "100%",
+    maxWidth: 300,
+  },
 });
