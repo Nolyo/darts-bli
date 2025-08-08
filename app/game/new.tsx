@@ -8,6 +8,7 @@ import { useGame } from "../../hooks/useGame";
 import { showError } from "../../utils/notifications";
 import type { GameModeType } from "../../types";
 import { Button } from "../../components/ui/Button";
+import { Modal } from "../../components/ui/Modal";
 import { Card } from "../../components/ui/Card";
 
 export const PointsMode: Record<GameModeType, number> = {
@@ -36,6 +37,7 @@ export default function NewScreen() {
     null
   );
   const inputRefs = useRef<{ [key: number]: TextInput | null }>({});
+  const [showConfirm, setShowConfirm] = useState<boolean>(false);
 
   useEffect(() => {
     // Toujours nettoyer et créer un nouveau jeu quand on arrive sur cette page
@@ -94,6 +96,13 @@ export default function NewScreen() {
       setLocalPlayers([...localPlayers, newPlayer]);
       setLastAddedPlayerId(newPlayer.getId());
     }
+  };
+
+  const handleOpenConfirm = () => setShowConfirm(true);
+  const handleCloseConfirm = () => setShowConfirm(false);
+  const handleConfirmStart = async () => {
+    setShowConfirm(false);
+    await submit();
   };
 
   const updateUser = (player: Player, name: string) => {
@@ -196,7 +205,7 @@ export default function NewScreen() {
               title={`🚀 Démarrer la partie (${localPlayers.length} joueur${
                 localPlayers.length > 1 ? "s" : ""
               })`}
-              onPress={submit}
+              onPress={handleOpenConfirm}
               variant="primary"
               size="lg"
               style={{ width: "100%" }}
@@ -205,6 +214,31 @@ export default function NewScreen() {
           </View>
         )}
       </SafeAreaView>
+      <Modal visible={showConfirm} onClose={handleCloseConfirm} size="sm">
+        <Title style={{ alignSelf: "center", marginBottom: 12 }}>
+          Confirmer le démarrage
+        </Title>
+        <Text style={{ textAlign: "center", marginBottom: 16 }}>
+          Commencer la partie avec {localPlayers.length} joueur
+          {localPlayers.length > 1 ? "s" : ""} ?
+        </Text>
+        <View style={{ flexDirection: "row", gap: 12 }}>
+          <Button
+            title="Annuler"
+            onPress={handleCloseConfirm}
+            variant="outline"
+            size="md"
+            style={{ flex: 1 }}
+          />
+          <Button
+            title="Confirmer"
+            onPress={handleConfirmStart}
+            variant="primary"
+            size="md"
+            style={{ flex: 1 }}
+          />
+        </View>
+      </Modal>
     </Container>
   );
 }
