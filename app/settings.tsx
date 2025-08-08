@@ -5,11 +5,28 @@ import { Container, Text, View } from "../components/Themed";
 import { Card } from "../components/ui/Card";
 import BouncyCheckbox from "react-native-bouncy-checkbox";
 import { bluePrimary } from "../constants/Css";
+import { useGameStore } from "../stores/gameStore";
 
 export default function SettingsScreen() {
   const navigation = useNavigation();
   const currentTheme = useColorScheme();
   const isDark = currentTheme === "dark";
+  const checkoutHelpEnabled =
+    (useGameStore() as any).checkoutHelpEnabled ?? true;
+  const hapticsEnabled = (useGameStore() as any).hapticsEnabled ?? false;
+  const soundsEnabled = (useGameStore() as any).soundsEnabled ?? true;
+  const preferDarkTheme = (useGameStore() as any).preferDarkTheme ?? false;
+  const setCheckoutHelpEnabled = (useGameStore() as any)
+    .setCheckoutHelpEnabled as (b: boolean) => void;
+  const setHapticsEnabled = (useGameStore() as any).setHapticsEnabled as (
+    b: boolean
+  ) => void;
+  const setSoundsEnabled = (useGameStore() as any).setSoundsEnabled as (
+    b: boolean
+  ) => void;
+  const setPreferDarkTheme = (useGameStore() as any).setPreferDarkTheme as (
+    b: boolean
+  ) => void;
 
   // Styles dynamiques selon le thème
   const dynamicStyles = {
@@ -51,15 +68,36 @@ export default function SettingsScreen() {
             <View style={styles.settingItemContent}>
               <View style={styles.settingTextContainer}>
                 <Text style={styles.settingLabel}>
-                  Fin de partie automatique
+                  Aide au checkout (finir plus vite)
                 </Text>
                 <Text style={styles.settingDescription}>
-                  La partie se termine dès qu'un joueur atteint zéro
+                  Affiche des suggestions de flèches pour terminer (double-out)
                 </Text>
               </View>
               <BouncyCheckbox
-                isChecked={true}
-                onPress={console.log}
+                isChecked={checkoutHelpEnabled}
+                onPress={(checked: boolean) => setCheckoutHelpEnabled(checked)}
+                fillColor={bluePrimary}
+                unfillColor="transparent"
+                iconStyle={{ borderColor: bluePrimary, borderWidth: 2 }}
+                innerIconStyle={{ borderWidth: 2 }}
+                size={24}
+                disableText
+              />
+            </View>
+          </View>
+
+          <View style={[styles.settingItem, dynamicStyles.settingItem]}>
+            <View style={styles.settingItemContent}>
+              <View style={styles.settingTextContainer}>
+                <Text style={styles.settingLabel}>Haptics</Text>
+                <Text style={styles.settingDescription}>
+                  Vibrations à l’impact et aux notifications
+                </Text>
+              </View>
+              <BouncyCheckbox
+                isChecked={hapticsEnabled}
+                onPress={(checked: boolean) => setHapticsEnabled(checked)}
                 fillColor={bluePrimary}
                 unfillColor="transparent"
                 iconStyle={{ borderColor: bluePrimary, borderWidth: 2 }}
@@ -99,9 +137,31 @@ export default function SettingsScreen() {
 
           <View style={styles.infoBox}>
             <Text style={styles.infoText}>
-              💡 Pour changer le thème, utilisez les paramètres de votre
-              téléphone. Le support natif arrivera bientôt !
+              💡 Thème sombre par défaut (app):
             </Text>
+          </View>
+
+          <View style={[styles.settingItem, dynamicStyles.settingItem]}>
+            <View style={styles.settingItemContent}>
+              <View style={styles.settingTextContainer}>
+                <Text style={styles.settingLabel}>
+                  Activer le thème sombre par défaut
+                </Text>
+                <Text style={styles.settingDescription}>
+                  Utiliser le thème sombre dès le lancement (si supporté)
+                </Text>
+              </View>
+              <BouncyCheckbox
+                isChecked={preferDarkTheme}
+                onPress={(checked: boolean) => setPreferDarkTheme(checked)}
+                fillColor={bluePrimary}
+                unfillColor="transparent"
+                iconStyle={{ borderColor: bluePrimary, borderWidth: 2 }}
+                innerIconStyle={{ borderWidth: 2 }}
+                size={24}
+                disableText
+              />
+            </View>
           </View>
         </Card>
 

@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 import {
   Modal as RNModal,
   View,
@@ -6,15 +6,15 @@ import {
   Pressable,
   useColorScheme,
   ScrollView,
-} from 'react-native';
-import { TabBarIcon } from '../../app/(tabs)/_layout';
+} from "react-native";
+import { TabBarIcon } from "../../app/(tabs)/_layout";
 
 interface ModalProps {
   visible: boolean;
   onClose: () => void;
   title?: string;
   children: React.ReactNode;
-  size?: 'sm' | 'md' | 'lg' | 'full';
+  size?: "sm" | "md" | "lg" | "full";
   showCloseButton?: boolean;
 }
 
@@ -22,36 +22,38 @@ export const Modal: React.FC<ModalProps> = ({
   visible,
   onClose,
   children,
-  size = 'md',
+  size = "md",
   showCloseButton = true,
 }) => {
   const theme = useColorScheme();
-  const isDark = theme === 'dark';
+  const isDark = theme === "dark";
 
   const getModalStyle = () => {
     const baseStyle = {
-      backgroundColor: isDark ? '#1f2937' : '#ffffff',
+      backgroundColor: isDark ? "#000" : "#ffffff",
+      borderWidth: 2,
+      borderColor: isDark ? "#374151" : "#e5e7eb",
       borderRadius: 16,
-      maxHeight: '90%',
+      maxHeight: "90%",
     };
 
     switch (size) {
-      case 'sm':
-        return { ...baseStyle, width: '80%' };
-      case 'md':
-        return { ...baseStyle, width: '90%' };
-      case 'lg':
-        return { ...baseStyle, width: '95%' };
-      case 'full':
-        return { 
-          ...baseStyle, 
-          width: '100%', 
-          height: '100%', 
+      case "sm":
+        return { ...baseStyle, width: "80%" };
+      case "md":
+        return { ...baseStyle, width: "90%" };
+      case "lg":
+        return { ...baseStyle, width: "95%" };
+      case "full":
+        return {
+          ...baseStyle,
+          width: "100%",
+          height: "100%",
           borderRadius: 0,
-          maxHeight: '100%'
+          maxHeight: "100%",
         };
       default:
-        return { ...baseStyle, width: '90%' };
+        return { ...baseStyle, width: "90%" };
     }
   };
 
@@ -70,13 +72,13 @@ export const Modal: React.FC<ModalProps> = ({
               <Pressable onPress={onClose} style={styles.closeButton}>
                 <TabBarIcon
                   name="times"
-                  color={isDark ? '#ffffff' : '#374151'}
+                  color={isDark ? "#ffffff" : "#374151"}
                   size={24}
                 />
               </Pressable>
             </View>
           )}
-          <ScrollView 
+          <ScrollView
             style={styles.content}
             showsVerticalScrollIndicator={false}
             contentContainerStyle={{ flexGrow: 1 }}
@@ -92,22 +94,22 @@ export const Modal: React.FC<ModalProps> = ({
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
   },
   backdrop: {
-    position: 'absolute',
+    position: "absolute",
     top: 0,
     left: 0,
     right: 0,
     bottom: 0,
   },
   modal: {
-    position: 'relative',
+    position: "relative",
   },
   closeButtonContainer: {
-    position: 'absolute',
+    position: "absolute",
     top: 12,
     right: 12,
     zIndex: 1,
@@ -115,7 +117,7 @@ const styles = StyleSheet.create({
   closeButton: {
     padding: 8,
     borderRadius: 20,
-    backgroundColor: 'rgba(0, 0, 0, 0.1)',
+    backgroundColor: "rgba(0, 0, 0, 0.1)",
   },
   content: {
     flex: 1,

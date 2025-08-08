@@ -9,6 +9,7 @@ import type { GameModeType } from "../../types";
 import { Button } from "../../components/ui/Button";
 import { Modal } from "../../components/ui/Modal";
 import { Card } from "../../components/ui/Card";
+import { useColorScheme } from "react-native";
 
 export const PointsMode: Record<GameModeType, number> = {
   "501": 501,
@@ -20,6 +21,7 @@ const GAME_MODES: GameModeType[] = ["501", "301", "Capital"];
 
 export default function NewScreen() {
   const navigation = useNavigation();
+  const theme = useColorScheme();
   const {
     game,
     gameType,
@@ -104,6 +106,11 @@ export default function NewScreen() {
     }
 
     try {
+      // Applique l'ordre local au modèle avant démarrage
+      localPlayers.forEach((p) => {
+        const gp = game.getPlayerById(p.getId());
+        gp?.setOrder(p.getOrder());
+      });
       await game.checkSetup();
       await saveGame();
       router.replace({ pathname: "/game/[id]", params: { id: game.id } });
@@ -121,6 +128,18 @@ export default function NewScreen() {
       setLocalPlayers([...localPlayers, newPlayer]);
       setLastAddedPlayerId(newPlayer.getId());
     }
+  };
+
+  const shufflePlayers = () => {
+    if (!game) return;
+    const shuffled = [...localPlayers]
+      .map((p) => ({ p, r: Math.random() }))
+      .sort((a, b) => a.r - b.r)
+      .map(({ p }, idx) => {
+        p.setOrder(idx + 1);
+        return p;
+      });
+    setLocalPlayers(shuffled);
   };
 
   const handleOpenConfirm = () => setShowConfirm(true);
@@ -197,6 +216,17 @@ export default function NewScreen() {
             size="md"
             style={{ width: "100%" }}
           />
+          {localPlayers.length > 1 && (
+            <View style={{ marginTop: 12 }}>
+              <Button
+                title="🔀 Mélanger l'ordre"
+                onPress={shufflePlayers}
+                variant="outline"
+                size="md"
+                style={{ width: "100%" }}
+              />
+            </View>
+          )}
         </View>
 
         <View style={{ gap: 12 }}>
