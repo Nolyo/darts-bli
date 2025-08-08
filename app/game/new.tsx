@@ -1,5 +1,4 @@
-import { SafeAreaView, StyleSheet, TextInput } from "react-native";
-import SelectDropdown from "react-native-select-dropdown";
+import { SafeAreaView, StyleSheet, TextInput, Pressable } from "react-native";
 import { Container, Text, Title, View } from "../../components/Themed";
 import { useEffect, useState, useRef } from "react";
 import { router, useNavigation } from "expo-router";
@@ -38,6 +37,32 @@ export default function NewScreen() {
   );
   const inputRefs = useRef<{ [key: number]: TextInput | null }>({});
   const [showConfirm, setShowConfirm] = useState<boolean>(false);
+
+  const MODE_INFO: Record<GameModeType, { icon: string; description: string }> =
+    {
+      "501": {
+        icon: "🎮",
+        description: "Départ 501. Atteignez 0 le plus vite possible.",
+      },
+      "301": {
+        icon: "🎯",
+        description: "Version rapide. Départ 301.",
+      },
+      Capital: {
+        icon: "💰",
+        description: "Départ 1000. Mode capital.",
+      },
+    };
+
+  const handleSelectGameMode = (selectedItem: GameModeType) => {
+    setGameType(selectedItem);
+    const updatedPlayers = localPlayers.map((player) => {
+      const newScore = PointsMode[selectedItem];
+      player.setScore(newScore);
+      return player;
+    });
+    setLocalPlayers([...updatedPlayers]);
+  };
 
   useEffect(() => {
     // Toujours nettoyer et créer un nouveau jeu quand on arrive sur cette page
@@ -129,33 +154,42 @@ export default function NewScreen() {
       <Title style={{ marginVertical: 20 }}>🎯 Nouvelle partie</Title>
 
       <SafeAreaView style={{ width: "100%", flex: 1, paddingHorizontal: 20 }}>
-        <Card style={{ marginBottom: 20 }}>
-          <Text style={{ fontSize: 16, marginBottom: 12, fontWeight: "600" }}>
+        <View style={{ marginBottom: 20 }}>
+          <Text style={{ fontSize: 16, marginBottom: 8, fontWeight: "600" }}>
             Mode de jeu
           </Text>
-          <SelectDropdown
-            data={GAME_MODES}
-            onSelect={(selectedItem: GameModeType) => {
-              setGameType(selectedItem);
-              // Reset players with new scores when changing game mode
-              const updatedPlayers = localPlayers.map((player) => {
-                const newScore = PointsMode[selectedItem];
-                player.setScore(newScore);
-                return player;
-              });
-              setLocalPlayers([...updatedPlayers]);
-            }}
-            defaultValue={gameType}
-            defaultButtonText="Choisir un mode"
-            buttonStyle={styles.dropdown}
-            buttonTextStyle={styles.dropdownText}
-            dropdownStyle={styles.dropdownContainer}
-            rowStyle={styles.dropdownRow}
-            rowTextStyle={styles.dropdownRowText}
-          />
-        </Card>
+          <Text style={styles.modeSelectedDesc}>
+            {MODE_INFO[gameType as GameModeType].description}
+          </Text>
+          <View style={[styles.modeGrid, { marginTop: 8 }]}>
+            {GAME_MODES.map((mode) => {
+              const selected = gameType === mode;
+              return (
+                <Pressable
+                  key={mode}
+                  onPress={() => handleSelectGameMode(mode)}
+                  style={({ pressed }) => [
+                    { width: "31%", aspectRatio: 1 },
+                    pressed && { transform: [{ scale: 0.98 }], opacity: 0.9 },
+                  ]}
+                >
+                  <Card
+                    variant={selected ? "elevated" : "outlined"}
+                    style={[
+                      styles.modeCard,
+                      selected && styles.modeCardSelected,
+                    ]}
+                  >
+                    <Text style={styles.modeIcon}>{MODE_INFO[mode].icon}</Text>
+                    <Text style={styles.modeTitle}>{mode}</Text>
+                  </Card>
+                </Pressable>
+              );
+            })}
+          </View>
+        </View>
 
-        <View style={{ marginBottom: 20 }}>
+        <View style={{ marginTop: 32, marginBottom: 20 }}>
           <Button
             title="➕ Ajouter un joueur"
             onPress={handleAddPlayer}
@@ -244,29 +278,41 @@ export default function NewScreen() {
 }
 
 const styles = StyleSheet.create({
-  dropdown: {
-    width: "100%",
-    height: 50,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: "#d1d5db",
-    backgroundColor: "#ffffff",
+  modeGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-between",
+    gap: 10,
   },
-  dropdownText: {
+  modeCard: {
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 20,
+    borderRadius: 12,
+    minHeight: 140,
+  },
+  modeCardSelected: {
+    borderWidth: 2,
+    borderColor: "#4f46e5",
+    shadowColor: "#4f46e5",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
+  },
+  modeIcon: {
+    fontSize: 36,
+    marginBottom: 10,
+  },
+  modeTitle: {
     fontSize: 16,
-    color: "#374151",
+    fontWeight: "700",
+    marginBottom: 6,
+  },
+  modeSelectedDesc: {
+    fontSize: 12,
     textAlign: "left",
-  },
-  dropdownContainer: {
-    borderRadius: 8,
-    marginTop: 4,
-  },
-  dropdownRow: {
-    paddingVertical: 12,
-  },
-  dropdownRowText: {
-    fontSize: 16,
-    color: "#374151",
+    opacity: 0.85,
+    paddingHorizontal: 4,
   },
   playerInput: {
     borderWidth: 1,

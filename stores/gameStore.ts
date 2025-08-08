@@ -147,6 +147,8 @@ export const useGameStore = create<GameStore>()((set, get) => ({
     try {
       const currentPlayerName = currentGame.currentPlayer()?.getName();
       await currentGame.nextPlayer();
+      // Force une mise à jour de l'état pour déclencher un re-render
+      set({ currentGame });
       await saveGame();
 
       const nextPlayerName = currentGame.currentPlayer()?.getName();

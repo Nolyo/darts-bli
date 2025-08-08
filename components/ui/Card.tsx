@@ -1,26 +1,26 @@
-import React from 'react';
-import { View, ViewStyle, useColorScheme } from 'react-native';
+import React from "react";
+import { View, ViewStyle, useColorScheme, StyleProp } from "react-native";
 
 interface CardProps {
   children: React.ReactNode;
-  style?: ViewStyle;
-  variant?: 'default' | 'elevated' | 'outlined';
-  padding?: 'none' | 'sm' | 'md' | 'lg';
+  style?: StyleProp<ViewStyle>;
+  variant?: "default" | "elevated" | "outlined";
+  padding?: "none" | "sm" | "md" | "lg";
 }
 
 export const Card: React.FC<CardProps> = ({
   children,
   style,
-  variant = 'default',
-  padding = 'md',
+  variant = "default",
+  padding = "md",
 }) => {
   const theme = useColorScheme();
-  const isDark = theme === 'dark';
+  const isDark = theme === "dark";
 
   const getCardStyle = (): ViewStyle => {
     const baseStyle: ViewStyle = {
       borderRadius: 12,
-      backgroundColor: isDark ? '#374151' : '#ffffff',
+      backgroundColor: isDark ? "#374151" : "#ffffff",
     };
 
     const paddingMap = {
@@ -36,29 +36,25 @@ export const Card: React.FC<CardProps> = ({
     };
 
     switch (variant) {
-      case 'elevated':
+      case "elevated":
         return {
           ...cardStyle,
-          shadowColor: isDark ? '#000000' : '#000000',
+          shadowColor: isDark ? "#000000" : "#000000",
           shadowOffset: { width: 0, height: 2 },
           shadowOpacity: isDark ? 0.3 : 0.1,
           shadowRadius: 8,
           elevation: 4,
         };
-      case 'outlined':
+      case "outlined":
         return {
           ...cardStyle,
           borderWidth: 1,
-          borderColor: isDark ? '#4b5563' : '#e5e7eb',
+          borderColor: isDark ? "#4b5563" : "#e5e7eb",
         };
       default:
         return cardStyle;
     }
   };
 
-  return (
-    <View style={[getCardStyle(), style]}>
-      {children}
-    </View>
-  );
+  return <View style={[getCardStyle(), style]}>{children}</View>;
 };

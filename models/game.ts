@@ -125,24 +125,18 @@ export default class Game {
   }
 
   getNextPlayerToPlay() {
+    if (this.players.length === 0) return undefined;
     if (this.rows.length === 0) {
       return this.players.find((player) => player.order === 1);
-    } else {
-      const lastPlayerInRow = this.getCurrentPlayerInRow();
-      if (!lastPlayerInRow) {
-        return this.players.find((player) => player.order === 1);
-      }
-      const lastPlayer = lastPlayerInRow.player;
-      const lastPlayerOrder = lastPlayer.order;
-
-      if (lastPlayerOrder === this.players.length) {
-        return this.players.find((player) => player.order === 1);
-      }
-
-      return this.players.find(
-        (player) => player.score > 0 && player.order === lastPlayerOrder + 1
-      );
     }
+    const lastPlayerInRow = this.getCurrentPlayerInRow();
+    if (!lastPlayerInRow) {
+      return this.players.find((player) => player.order === 1);
+    }
+    const lastPlayerOrder = lastPlayerInRow.player.order;
+    const nextOrder =
+      lastPlayerOrder === this.players.length ? 1 : lastPlayerOrder + 1;
+    return this.players.find((player) => player.order === nextOrder);
   }
 
   getPlayerOrderByScore() {
@@ -182,12 +176,51 @@ export default class Game {
         throw new Error("Erreur addDart.playernotfound");
       }
 
+      // Enregistre la fléchette dans le tour courant
       currentPlayerInRow.addDart(dart);
       currentPlayerInRow.setScore(currentPlayerInRow.getScore() + scoreDart);
-      player.setScore(player.getScore() - scoreDart);
 
+      const preScore = player.getScore();
+      const postScore = preScore - scoreDart;
+      const isDoubleOut = this.finishType === "double";
+      const isOver = postScore < 0;
+      const isDoubleOutOne = isDoubleOut && postScore === 1;
+      const isInvalidDoubleFinish =
+        postScore === 0 && isDoubleOut && _multiplier !== 2;
+
+      // Gestion des busts: score < 0, reste 1 en double-out, ou 0 sans double en double-out
+      if (isOver || isDoubleOutOne || isInvalidDoubleFinish) {
+        if (isOver) {
+          alert("Score dépassé - tour annulé");
+        } else if (isDoubleOutOne) {
+          alert("Il doit rester 0 en fin de tour (double-out) - tour annulé");
+        } else if (isInvalidDoubleFinish) {
+          alert("Vous devez finir avec un double - tour annulé");
+        }
+
+        // Réinitialise le score du joueur pour ce tour
+        await this.resetCurrentPlayerInRow(player);
+
+        // Termine le tour immédiatement (plus de tirs)
+        while (currentPlayerInRow.getDartsCount() < 3) {
+          currentPlayerInRow.addDart({ score: 0, multiplier: 0 });
+        }
+
+        await this.save();
+        return;
+      }
+
+      // Cas de fin valide
+      if (postScore === 0) {
+        player.setScore(0);
+        await this.save();
+        await this.playerFinish(player, dart);
+        return;
+      }
+
+      // Cas normal
+      player.setScore(postScore);
       await this.save();
-      await this.playerFinish(player, dart);
     } catch (error) {
       alert(error);
     }
@@ -203,9 +236,18 @@ export default class Game {
   }
 
   async alertFinish() {
+    // Fin au 1er gagnant
+    if (this.isFinishAtFirst && this.ranking.length >= 1) {
+      this.status = "finished";
+      alert(`${this.ranking[0].name} a gagné`);
+      return;
+    }
+
+    // Fin quand tous les joueurs ont terminé
     if (this.ranking.length === this.players.length) {
       this.status = "finished";
       alert("Partie terminée");
+      return;
     }
 
     if (this.ranking.length === 1) {
@@ -243,7 +285,16 @@ export default class Game {
     this.ranking = [];
     this.status = "pending";
     this.players.forEach((player) => {
-      player.score = this.type === "501" ? 501 : 301;
+      if (this.type === "501") {
+        player.score = 501;
+      } else if (this.type === "301") {
+        player.score = 301;
+      } else if (this.type === "Capital") {
+        player.score = 1000;
+      } else {
+        const parsed = parseInt(this.type, 10);
+        player.score = isNaN(parsed) ? 501 : parsed;
+      }
     });
 
     await this.save();
@@ -280,10 +331,10 @@ export default class Game {
     }
 
     if (this.finishType === "double") {
-      if (dart.multiplier === 1) {
+      if (dart.multiplier !== 2) {
         alert("Vous devez finir avec un double, 0 point attribué");
       }
-      return dart.multiplier === 2 || dart.multiplier === 3;
+      return dart.multiplier === 2;
     }
 
     return false;
@@ -348,7 +399,6 @@ export default class Game {
     }
 
     await this.save();
-
     if (player.getScore() === 0) {
       await this.nextPlayer();
     }
