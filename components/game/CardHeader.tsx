@@ -1,4 +1,4 @@
-import Game from "../../entities/game";
+import Game from "../../models/game";
 import {Text, View} from "../Themed";
 import styles from "../../constants/Css";
 

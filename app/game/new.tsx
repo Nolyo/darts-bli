@@ -5,8 +5,8 @@ import SelectDropdown from 'react-native-select-dropdown'
 import {Container, Text, Title} from '../../components/Themed';
 import {useEffect, useState} from 'react';
 import {router, useNavigation} from 'expo-router';
-import Game from '../../entities/game';
-import Player from '../../entities/player';
+import Game from '../../models/game';
+import Player from '../../models/player';
 
 export const PointsMode = {
     '501': 501,

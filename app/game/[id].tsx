@@ -2,7 +2,7 @@ import {ImageBackground, Pressable, ScrollView, useColorScheme, View} from 'reac
 import {useLocalSearchParams, useNavigation} from 'expo-router';
 import {Container, Text, Title, View as ThemedView} from '../../components/Themed';
 import {useEffect, useReducer, useState} from "react";
-import Game from "../../entities/game";
+import Game from "../../models/game";
 import {TabBarIcon} from "../(tabs)/_layout";
 import styles, {
     backgroundColor,

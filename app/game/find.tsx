@@ -4,7 +4,7 @@ import {Pressable, SafeAreaView, ScrollView, ImageBackground, useColorScheme} fr
 import BouncyCheckbox from "react-native-bouncy-checkbox";
 
 import {Container, Text, useThemeColor, View} from '../../components/Themed';
-import Game from '../../entities/game';
+import Game from '../../models/game';
 import {GameType} from "../../types";
 import styles from "../../constants/Css";
 
