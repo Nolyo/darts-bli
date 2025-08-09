@@ -134,6 +134,7 @@ export const useGameStore = create<GameStore>()(
         if (!currentGame) return;
 
         try {
+          const beforeRankingCount = currentGame.ranking.length;
           await currentGame.addDart(score, multiplier);
           // Batch save lightly: immediate feedback, save shortly after
           set({ currentGame });
@@ -144,6 +145,20 @@ export const useGameStore = create<GameStore>()(
           const totalScore = score * multiplier;
           if (totalScore > 0) {
             showSuccess(`${totalScore} points marqués !`);
+          }
+
+          // Si un joueur vient de finir et que l'option "fin au 1er gagnant" n'est pas activée
+          // on affiche un toast festif mais on continue la partie
+          const afterRankingCount = currentGame.ranking.length;
+          if (
+            afterRankingCount > beforeRankingCount &&
+            !currentGame.isFinishAtFirst &&
+            currentGame.status !== "finished"
+          ) {
+            const winner = currentGame.ranking[afterRankingCount - 1];
+            if (winner) {
+              showSuccess(`🎉 ${winner.getName()} a terminé !`);
+            }
           }
         } catch (error: any) {
           showError("Impossible d&apos;ajouter le score", error.message);

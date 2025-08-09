@@ -235,7 +235,7 @@ const styles = StyleSheet.create({
   ring: {
     position: "absolute",
     borderRadius: 9999,
-    borderWidth: 12,
+    borderWidth: 14,
   },
   sectorLine: {
     position: "absolute",
@@ -248,9 +248,9 @@ const styles = StyleSheet.create({
     height: "96%",
   },
   tripleRing: {
-    // Diamètre ≈ moyenne (tripleInner=0.52, tripleOuter=0.62) → 0.57
-    width: "57%",
-    height: "57%",
+    // Correspond à la moyenne (0.48..0.68) → ~0.58 du diamètre
+    width: "58%",
+    height: "58%",
   },
   doubleRing: {
     // Diamètre ≈ moyenne (doubleInner=0.87, doubleOuter=0.97) → 0.92

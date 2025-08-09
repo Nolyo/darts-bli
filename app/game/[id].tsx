@@ -32,6 +32,9 @@ import { LoadingSpinner } from "../../components/ui/LoadingSpinner";
 import { DartBoard } from "../../components/game/DartBoard";
 import { MultiplierSelector } from "../../components/game/MultiplierSelector";
 import { DartTarget } from "../../components/game/DartTarget";
+import { InputModeSwitch } from "../../components/ui/InputModeSwitch";
+import { ConfettiOverlay } from "../../components/ui/ConfettiOverlay";
+import { playVictorySound } from "../../utils/sounds";
 import { getCheckoutSuggestions, formatSuggestion } from "../../utils/checkout";
 
 export default function GameId() {
@@ -67,7 +70,8 @@ export default function GameId() {
   const [tempDart, setTempDart] = useState<number | null>(null);
   const [showModalSettings, setShowModalSettings] = useState<boolean>(false);
   const [showRanking, setShowRanking] = useState<boolean>(false);
-  const [inputMode, setInputMode] = useState<"grid" | "board">("grid");
+  const [inputMode, setInputMode] = useState<"grid" | "board">("board");
+  const [showConfetti, setShowConfetti] = useState<boolean>(false);
 
   const handleStartGame = async () => {
     const success = await startGame();
@@ -113,7 +117,32 @@ export default function GameId() {
     setTempDart(null);
   };
   const handleResolveHit = async (score: number, multiplier: number) => {
+    // Détection optimiste avant mutation (pour garantir le son sous gesture Web)
+    const preScore = currentPlayer?.getScore() ?? 0;
+    const postScore = preScore - score * multiplier;
+    const willFinishNow =
+      postScore === 0 &&
+      (finishType === "classic" ||
+        (finishType === "double" && multiplier === 2));
+
+    if (willFinishNow && gameStatus !== "finished") {
+      setShowConfetti(true);
+      setTimeout(() => setShowConfetti(false), 2200);
+      playVictorySound().catch(() => {});
+    }
+
+    const beforeRanking = ranking.length;
     await addDart(score, multiplier);
+    const afterRanking = ranking.length;
+    if (
+      !willFinishNow &&
+      afterRanking > beforeRanking &&
+      gameStatus !== "finished"
+    ) {
+      setShowConfetti(true);
+      setTimeout(() => setShowConfetti(false), 2200);
+      playVictorySound().catch(() => {});
+    }
   };
 
   const colorDart = (dart: number) => {
@@ -154,20 +183,58 @@ export default function GameId() {
     return (
       <Container style={{ flexDirection: "column", justifyContent: "center" }}>
         <Card style={{ alignItems: "center", margin: 20 }} variant="elevated">
-          <Text style={{ fontSize: 24, fontWeight: "bold", marginBottom: 16 }}>
+          <Text style={{ fontSize: 28, fontWeight: "bold", marginBottom: 8 }}>
             🎉 Partie terminée !
           </Text>
           {ranking.length > 0 && (
-            <Text style={{ fontSize: 18, marginBottom: 20 }}>
+            <Text style={{ fontSize: 18, marginBottom: 4 }}>
               Gagnant : {ranking[0].getName()}
             </Text>
           )}
-          <Button
-            title="Nouvelle partie"
-            onPress={handlePressReset}
-            variant="primary"
-            size="lg"
-          />
+          <View style={{ width: "100%", gap: 8, marginTop: 12 }}>
+            {[...players]
+              .sort((a, b) => a.getScore() - b.getScore())
+              .map((player, idx) => (
+                <Card
+                  key={player.getId()}
+                  variant={idx === 0 ? "elevated" : "outlined"}
+                >
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                    }}
+                  >
+                    <Text
+                      style={{
+                        fontSize: 16,
+                        fontWeight: idx === 0 ? "bold" : "normal",
+                      }}
+                    >
+                      {idx + 1}. {player.getName()}
+                    </Text>
+                    <Text style={{ fontSize: 16, fontWeight: "bold" }}>
+                      {player.getScore()} pts
+                    </Text>
+                  </View>
+                </Card>
+              ))}
+          </View>
+          <View style={{ flexDirection: "row", gap: 12, marginTop: 16 }}>
+            <Button
+              title="🔄 Rejouer"
+              onPress={handlePressReset}
+              variant="primary"
+              size="md"
+            />
+            <Button
+              title="↩️ Retour"
+              onPress={() => navigation.goBack()}
+              variant="outline"
+              size="md"
+            />
+          </View>
         </Card>
       </Container>
     );
@@ -183,7 +250,18 @@ export default function GameId() {
         style={styles.bgImage}
       >
         {gameStatus === "started" && (
-          <ThemedView style={{ alignItems: "center", flex: 1, width: "100%" }}>
+          <ThemedView
+            style={{
+              alignItems: "center",
+              flex: 1,
+              width: "100%",
+              zIndex: 10,
+            }}
+          >
+            <ConfettiOverlay
+              visible={showConfetti}
+              onEnd={() => setShowConfetti(false)}
+            />
             <View
               style={{
                 flexDirection: "row",
@@ -192,18 +270,10 @@ export default function GameId() {
               }}
             >
               <Title style={{ flex: 1 }}>Tour N° {gameRows.length || 1}</Title>
-              <View style={{ flexDirection: "row", gap: 8, marginRight: 12 }}>
-                <Button
-                  title="Grille"
-                  onPress={() => setInputMode("grid")}
-                  variant={inputMode === "grid" ? "primary" : "outline"}
-                  size="sm"
-                />
-                <Button
-                  title="Cible"
-                  onPress={() => setInputMode("board")}
-                  variant={inputMode === "board" ? "primary" : "outline"}
-                  size="sm"
+              <View style={{ marginRight: 12 }}>
+                <InputModeSwitch
+                  mode={inputMode}
+                  onChange={(m) => setInputMode(m)}
                 />
               </View>
               <TabBarIcon
@@ -245,67 +315,67 @@ export default function GameId() {
                     );
                     if (routes.length === 0) return null;
                     return (
-                      <Card
-                        style={{
-                          margin: 16,
-                          backgroundColor: "rgba(31, 124, 65, 0.73)",
-                          borderColor: "rgba(34, 197, 94, 0.4)",
-                          borderWidth: 1,
-                          width: "90%",
-                          //   position: "absolute",
-                          //   bottom: 0,
-                          //   left: 0,
-                          //   right: 0,
-                          zIndex: 1,
-                        }}
-                        variant="outlined"
+                      <View
+                        pointerEvents="box-none"
+                        style={{ width: "100%", alignItems: "center" }}
                       >
-                        <View
+                        <Card
                           style={{
-                            flexDirection: "row",
-                            alignItems: "center",
-                            marginBottom: 12,
+                            margin: 16,
+                            backgroundColor: "rgba(31, 124, 65, 0.65)",
+                            borderColor: "rgba(34, 197, 94, 0.35)",
+                            borderWidth: 1,
+                            width: "90%",
                           }}
+                          variant="outlined"
                         >
-                          <Text style={{ fontSize: 18, marginRight: 8 }}>
-                            🎯
-                          </Text>
-                          <Text
+                          <View
                             style={{
-                              fontSize: 16,
-                              fontWeight: "600",
-                              color: "#ffffff",
+                              flexDirection: "row",
+                              alignItems: "center",
+                              marginBottom: 12,
                             }}
                           >
-                            Checkout ({remaining} pts)
-                          </Text>
-                        </View>
-                        <View style={{ gap: 6 }}>
-                          {routes.slice(0, 3).map((r, idx) => (
-                            <View
-                              key={idx}
+                            <Text style={{ fontSize: 18, marginRight: 8 }}>
+                              🎯
+                            </Text>
+                            <Text
                               style={{
-                                backgroundColor: "rgba(34, 197, 94, 0.25)",
-                                paddingHorizontal: 12,
-                                paddingVertical: 8,
-                                borderRadius: 8,
-                                borderLeftWidth: 3,
-                                borderLeftColor: "#10b981",
+                                fontSize: 16,
+                                fontWeight: "600",
+                                color: "#ffffff",
                               }}
                             >
-                              <Text
+                              Checkout ({remaining} pts)
+                            </Text>
+                          </View>
+                          <View style={{ gap: 6 }}>
+                            {routes.slice(0, 3).map((r, idx) => (
+                              <View
+                                key={idx}
                                 style={{
-                                  fontSize: 16,
-                                  fontWeight: "700",
-                                  color: "#ffffff",
+                                  backgroundColor: "rgba(34, 197, 94, 0.25)",
+                                  paddingHorizontal: 12,
+                                  paddingVertical: 8,
+                                  borderRadius: 8,
+                                  borderLeftWidth: 3,
+                                  borderLeftColor: "#10b981",
                                 }}
                               >
-                                {formatSuggestion(r)}
-                              </Text>
-                            </View>
-                          ))}
-                        </View>
-                      </Card>
+                                <Text
+                                  style={{
+                                    fontSize: 16,
+                                    fontWeight: "700",
+                                    color: "#ffffff",
+                                  }}
+                                >
+                                  {formatSuggestion(r)}
+                                </Text>
+                              </View>
+                            ))}
+                          </View>
+                        </Card>
+                      </View>
                     );
                   })()}
               </>

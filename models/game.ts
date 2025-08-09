@@ -215,6 +215,14 @@ export default class Game {
         player.setScore(0);
         await this.save();
         await this.playerFinish(player, dart);
+        // Si la partie continue (pas de finish immédiat), on clôt le tour de suite
+        // en complétant les fléchettes restantes avec des zéros pour afficher le bouton "Joueur Suivant"
+        if (this.status !== "finished") {
+          while (currentPlayerInRow.getDartsCount() < 3) {
+            currentPlayerInRow.addDart({ score: 0, multiplier: 0 });
+          }
+          await this.save();
+        }
         return;
       }
 
@@ -231,6 +239,9 @@ export default class Game {
       return;
     }
     this.ranking.push(player);
+    // Si l'option "finir au 1er gagnant" n'est pas cochée, on laisse la partie
+    // continuer mais on ne met pas finished ici. L'UI/stores peuvent afficher
+    // une notification festive pour prévenir qu'il y a un gagnant.
     await this.alertFinish();
     await this.save();
   }
@@ -239,20 +250,21 @@ export default class Game {
     // Fin au 1er gagnant
     if (this.isFinishAtFirst && this.ranking.length >= 1) {
       this.status = "finished";
-      alert(`${this.ranking[0].name} a gagné`);
       return;
     }
 
     // Fin quand tous les joueurs ont terminé
     if (this.ranking.length === this.players.length) {
+      // Cas 1 joueur: si l'option "finir au 1er gagnant" n'est pas cochée,
+      // on reste en mode entraînement (pas de statut finished automatique)
+      if (this.players.length === 1 && !this.isFinishAtFirst) {
+        return;
+      }
       this.status = "finished";
-      alert("Partie terminée");
       return;
     }
 
-    if (this.ranking.length === 1) {
-      alert(`${this.ranking[0].name} a gagné`);
-    }
+    // si au moins un joueur a fini, on laisse l'UI afficher le classement
   }
 
   /*

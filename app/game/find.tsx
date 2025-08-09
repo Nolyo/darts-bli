@@ -11,6 +11,7 @@ import {
 import BouncyCheckbox from "react-native-bouncy-checkbox";
 
 import { Container, Text, useThemeColor, View } from "../../components/Themed";
+import { TabBarIcon } from "../(tabs)/_layout";
 import Game from "../../models/game";
 import { GameType } from "../../types";
 import styles from "../../constants/Css";
@@ -18,12 +19,20 @@ import { Button } from "../../components/ui/Button";
 import { Card } from "../../components/ui/Card";
 import { LoadingSpinner } from "../../components/ui/LoadingSpinner";
 import { showError, showSuccess } from "../../utils/notifications";
+import {
+  getEstimatedStorageLimitBytes,
+  getStorageUsageBytes,
+} from "../../utils/storage";
 
 export default function FindGameScreen() {
   const navigation = useNavigation();
   const [games, setGames] = useState<GameType[]>([]);
   const [selectedGames, setSelectedGames] = useState<GameType[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [usage, setUsage] = useState<{ bytes: number; keys: string[] } | null>(
+    null
+  );
+  const [showFinished, setShowFinished] = useState(false);
   const backgroundColor = useThemeColor({}, "background");
   const theme = useColorScheme();
   const isDark = theme === "dark";
@@ -63,7 +72,13 @@ export default function FindGameScreen() {
 
   useEffect(() => {
     void getGames();
+    void refreshUsage();
   }, []);
+
+  async function refreshUsage() {
+    const res = await getStorageUsageBytes(/darts.*/);
+    setUsage({ bytes: res.bytes, keys: [...res.keys] });
+  }
 
   async function getGames() {
     try {
@@ -97,19 +112,31 @@ export default function FindGameScreen() {
         <LoadingSpinner text="Chargement des parties..." fullScreen />
       )}
 
-      {!isLoading && games.length === 0 && (
-        <View style={styles.flexBoxCenter}>
-          <Text style={[styles.noGame, { textAlign: "center", fontSize: 18 }]}>
-            😔 Aucune partie sauvegardée
-          </Text>
-          <Button
-            title="Créer une nouvelle partie"
-            onPress={() => router.push("/game/new")}
-            variant="primary"
-            style={{ marginTop: 20 }}
-          />
-        </View>
-      )}
+      {!isLoading &&
+        (() => {
+          const visibleGames = games.filter((g: any) =>
+            showFinished ? true : (g?.status ?? "pending") !== "finished"
+          );
+          if (visibleGames.length !== 0) return null;
+          return (
+            <View style={styles.flexBoxCenter}>
+              <Text
+                style={[styles.noGame, { textAlign: "center", fontSize: 18 }]}
+              >
+                😔{" "}
+                {showFinished
+                  ? "Aucune partie sauvegardée"
+                  : "Aucune partie en cours"}
+              </Text>
+              <Button
+                title="Créer une nouvelle partie"
+                onPress={() => router.push("/game/new")}
+                variant="primary"
+                style={{ marginTop: 20 }}
+              />
+            </View>
+          );
+        })()}
 
       {!isLoading && games.length > 0 && (
         <ImageBackground
@@ -125,76 +152,216 @@ export default function FindGameScreen() {
               backgroundColor,
             }}
           >
+            {/* Filtres & stockage */}
+            <View
+              style={{
+                paddingHorizontal: 16,
+                paddingTop: 12,
+                paddingBottom: 4,
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "space-between",
+                alignItems: "center",
+                gap: 10,
+              }}
+            >
+              <View
+                style={{
+                  width: "100%",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  flexWrap: "wrap",
+                  gap: 5,
+                }}
+              >
+                <View style={{ minWidth: 220, flexShrink: 0 }}>
+                  <BouncyCheckbox
+                    size={20}
+                    fillColor="#10b981"
+                    unfillColor="transparent"
+                    iconStyle={{ borderColor: "#10b981", borderWidth: 1.5 }}
+                    innerIconStyle={{ borderWidth: 1.5 }}
+                    isChecked={showFinished}
+                    textComponent={
+                      <Text style={{ marginLeft: 8 }}>
+                        Afficher les parties terminées
+                      </Text>
+                    }
+                    onPress={(checked: boolean) => {
+                      setShowFinished(checked);
+                      setSelectedGames((prev) =>
+                        prev.filter(
+                          (g: any) =>
+                            checked || (g?.status ?? "pending") !== "finished"
+                        )
+                      );
+                    }}
+                  />
+                </View>
+                <View style={{ flex: 1, minWidth: 260 }}>
+                  {usage &&
+                    (() => {
+                      const total = getEstimatedStorageLimitBytes();
+                      const used = usage.bytes;
+                      const percent = Math.min(
+                        100,
+                        Math.round((used / total) * 100)
+                      );
+                      const warn = percent >= 80;
+                      return (
+                        <Card variant={warn ? "elevated" : "outlined"}>
+                          <View
+                            style={{
+                              flexDirection: "row",
+                              justifyContent: "space-between",
+                              alignItems: "center",
+                              padding: 10,
+                            }}
+                          >
+                            <Text style={{ fontWeight: "700" }}>Stockage</Text>
+                            <Text>
+                              {(used / (1024 * 1024)).toFixed(1)} /{" "}
+                              {(total / (1024 * 1024)).toFixed(0)} Mo
+                            </Text>
+                          </View>
+                          <View
+                            style={{
+                              height: 8,
+                              backgroundColor: "#1f2937",
+                              borderRadius: 4,
+                              marginTop: 8,
+                            }}
+                          >
+                            <View
+                              style={{
+                                width: `${percent}%`,
+                                height: 8,
+                                backgroundColor: warn ? "#ef4444" : "#10b981",
+                                borderRadius: 4,
+                              }}
+                            />
+                          </View>
+                          {warn && (
+                            <Text style={{ marginTop: 6, color: "#ef4444" }}>
+                              ⚠️ Espace bientôt saturé. Pensez à supprimer des
+                              parties.
+                            </Text>
+                          )}
+                        </Card>
+                      );
+                    })()}
+                </View>
+              </View>
+            </View>
             <ScrollView
-              style={{ width: "100%" }}
+              style={{
+                width: "100%",
+                backgroundColor: "rgba(0, 0, 0, 0.75)",
+              }}
               contentContainerStyle={{ paddingVertical: 16 }}
             >
-              {games.map((game) => (
-                <Pressable
-                  key={game.id}
-                  onPress={() =>
-                    router.push({
-                      pathname: "/game/[id]",
-                      params: { id: game.id },
-                    })
-                  }
-                  style={({ pressed }) => [
-                    localStyles.card,
-                    dynamicStyles.card,
-                    { transform: [{ scale: pressed ? 0.98 : 1 }] },
-                  ]}
-                >
-                  {/* Design style Flowbite - une seule zone unie */}
-                  <View style={localStyles.cardRow}>
-                    <View style={localStyles.iconContainer}>
-                      <Text style={localStyles.gameIcon}>🎯</Text>
-                    </View>
+              {games
+                .filter((g: any) =>
+                  showFinished ? true : (g?.status ?? "pending") !== "finished"
+                )
+                .map((game, idx) => (
+                  <Pressable
+                    key={`${game.id || "game"}-${idx}`}
+                    onPress={() =>
+                      router.push({
+                        pathname: "/game/[id]",
+                        params: { id: game.id },
+                      })
+                    }
+                    style={({ pressed }) => [
+                      localStyles.card,
+                      dynamicStyles.card,
+                      { transform: [{ scale: pressed ? 0.98 : 1 }] },
+                    ]}
+                  >
+                    {/* Design style Flowbite - une seule zone unie */}
+                    <View style={localStyles.cardRow}>
+                      <View style={localStyles.iconContainer}>
+                        <Text style={localStyles.gameIcon}>🎯</Text>
+                      </View>
 
-                    <View style={localStyles.contentContainer}>
-                      <Text
-                        style={[localStyles.gameTitle, dynamicStyles.title]}
-                      >
-                        {game.type}
-                      </Text>
-                      <Text
-                        style={[
-                          localStyles.gameSubtitle,
-                          dynamicStyles.subtitle,
-                        ]}
-                      >
-                        {game.players.map((p) => p.name).join(", ")} •{" "}
-                        {game.rows.length} tour{game.rows.length > 1 ? "s" : ""}
-                      </Text>
-                    </View>
-
-                    <View style={localStyles.rightContainer}>
-                      {game.status === "finished" && (
-                        <View style={localStyles.statusBadge}>
-                          <Text style={localStyles.statusText}>Terminée</Text>
+                      <View style={localStyles.contentContainer}>
+                        <View style={localStyles.titleRow}>
+                          <Text
+                            style={[localStyles.gameTitle, dynamicStyles.title]}
+                          >
+                            {game.type}
+                          </Text>
+                          {game.status === "finished" && (
+                            <View
+                              style={[
+                                localStyles.statusBadge,
+                                { marginLeft: 8 },
+                              ]}
+                            >
+                              <Text style={localStyles.statusText}>
+                                Terminée
+                              </Text>
+                            </View>
+                          )}
                         </View>
-                      )}
-                      <BouncyCheckbox
-                        size={20}
-                        fillColor="#3b82f6"
-                        unfillColor="transparent"
-                        iconStyle={{ borderColor: "#3b82f6", borderWidth: 1.5 }}
-                        innerIconStyle={{ borderWidth: 1.5 }}
-                        onPress={(isChecked: boolean) => {
-                          if (isChecked) {
-                            setSelectedGames([...selectedGames, game]);
-                          } else {
-                            setSelectedGames(
-                              selectedGames.filter(
-                                (selectedGame) => selectedGame.id !== game.id
-                              )
-                            );
-                          }
-                        }}
-                      />
+                        <Text
+                          style={[
+                            localStyles.gameSubtitle,
+                            dynamicStyles.subtitle,
+                          ]}
+                        >
+                          {(game.players || [])
+                            .map((p: any) => p?.name || "?")
+                            .join(", ")}{" "}
+                          • {(game.rows || []).length} tour
+                          {(game.rows || []).length > 1 ? "s" : ""}
+                        </Text>
+                      </View>
+
+                      <View style={localStyles.rightContainer}>
+                        {(() => {
+                          const isSelected = selectedGames.some(
+                            (g) => g.id === game.id
+                          );
+                          const toggle = () => {
+                            if (isSelected) {
+                              setSelectedGames(
+                                selectedGames.filter((sg) => sg.id !== game.id)
+                              );
+                            } else {
+                              setSelectedGames([...selectedGames, game]);
+                            }
+                          };
+                          return (
+                            <Pressable
+                              onPress={toggle}
+                              hitSlop={10}
+                              style={{
+                                width: 28,
+                                height: 28,
+                                alignItems: "center",
+                                justifyContent: "center",
+                              }}
+                            >
+                              <TabBarIcon
+                                name={isSelected ? "check" : "trash"}
+                                color={isSelected ? "#10b981" : "#94a3b8"}
+                                size={20}
+                                style={{
+                                  marginRight: 0,
+                                  marginBottom: 0,
+                                  textAlign: "center",
+                                }}
+                              />
+                            </Pressable>
+                          );
+                        })()}
+                      </View>
                     </View>
-                  </View>
-                </Pressable>
-              ))}
+                  </Pressable>
+                ))}
             </ScrollView>
             {selectedGames.length > 0 && (
               <View style={{ marginBottom: 20, marginHorizontal: 16 }}>
@@ -250,6 +417,11 @@ const localStyles = StyleSheet.create({
     marginRight: 12,
     padding: 10,
   },
+  titleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
   gameTitle: {
     fontSize: 18,
     fontWeight: "700",
@@ -261,8 +433,12 @@ const localStyles = StyleSheet.create({
     opacity: 0.8,
   },
   rightContainer: {
-    alignItems: "flex-end",
-    gap: 8,
+    width: 40,
+    alignItems: "center",
+    justifyContent: "center",
+    alignSelf: "stretch",
+    paddingLeft: 0,
+    paddingRight: 0,
   },
   statusBadge: {
     backgroundColor: "#10b981",

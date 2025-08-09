@@ -24,9 +24,10 @@ export interface ResolveHitOptions {
 const DEFAULT_OPTIONS: Required<ResolveHitOptions> = {
   bull50Radius: 0.06,
   bull25Radius: 0.12,
-  // élargir légèrement les zones pour faciliter le tap
-  tripleInnerRadius: 0.52,
-  tripleOuterRadius: 0.62,
+  // Élargir franchement la zone TRIPLE pour faciliter le tap sur mobile
+  // (au détriment de la fidélité parfaite à une vraie cible)
+  tripleInnerRadius: 0.48,
+  tripleOuterRadius: 0.68,
   doubleInnerRadius: 0.87,
   doubleOuterRadius: 0.97,
 };
