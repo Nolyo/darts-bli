@@ -14,10 +14,11 @@ export function TabBarIcon(props: {
   color: string;
   style?: {};
   onPress?: () => void;
+  size?: number;
 }) {
   return (
     <FontAwesome
-      size={28}
+      size={props.size ?? 28}
       style={{ marginBottom: -3, marginRight: 10 }}
       {...props}
     />

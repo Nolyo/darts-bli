@@ -31,6 +31,7 @@ import { Modal } from "../../components/ui/Modal";
 import { LoadingSpinner } from "../../components/ui/LoadingSpinner";
 import { DartBoard } from "../../components/game/DartBoard";
 import { MultiplierSelector } from "../../components/game/MultiplierSelector";
+import { DartTarget } from "../../components/game/DartTarget";
 import { getCheckoutSuggestions, formatSuggestion } from "../../utils/checkout";
 
 export default function GameId() {
@@ -66,6 +67,7 @@ export default function GameId() {
   const [tempDart, setTempDart] = useState<number | null>(null);
   const [showModalSettings, setShowModalSettings] = useState<boolean>(false);
   const [showRanking, setShowRanking] = useState<boolean>(false);
+  const [inputMode, setInputMode] = useState<"grid" | "board">("grid");
 
   const handleStartGame = async () => {
     const success = await startGame();
@@ -93,6 +95,12 @@ export default function GameId() {
   useEffect(() => {
     updateNavigation();
   }, [showModalSettings, gameType, players.length]);
+  useEffect(() => {
+    if (inputMode === "board" && showMultiplier) {
+      setShowMultiplier(false);
+      setTempDart(null);
+    }
+  }, [inputMode]);
 
   const handlePressDart = (_dart: number) => {
     setShowMultiplier(true);
@@ -103,6 +111,9 @@ export default function GameId() {
     await addDart(tempDart || 0, _multiplier);
     setShowMultiplier(false);
     setTempDart(null);
+  };
+  const handleResolveHit = async (score: number, multiplier: number) => {
+    await addDart(score, multiplier);
   };
 
   const colorDart = (dart: number) => {
@@ -181,6 +192,20 @@ export default function GameId() {
               }}
             >
               <Title style={{ flex: 1 }}>Tour N° {gameRows.length || 1}</Title>
+              <View style={{ flexDirection: "row", gap: 8, marginRight: 12 }}>
+                <Button
+                  title="Grille"
+                  onPress={() => setInputMode("grid")}
+                  variant={inputMode === "grid" ? "primary" : "outline"}
+                  size="sm"
+                />
+                <Button
+                  title="Cible"
+                  onPress={() => setInputMode("board")}
+                  variant={inputMode === "board" ? "primary" : "outline"}
+                  size="sm"
+                />
+              </View>
               <TabBarIcon
                 name="users"
                 color={theme === "dark" ? "#fff" : "#000"}
@@ -191,16 +216,24 @@ export default function GameId() {
 
             {canPlay && (
               <>
-                <DartBoard
-                  onDartPress={handlePressDart}
-                  disabled={showMultiplier}
-                />
-
-                <MultiplierSelector
-                  dartScore={tempDart || 0}
-                  onMultiplierSelect={handlePressMultiplier}
-                  visible={showMultiplier && tempDart !== null}
-                />
+                {inputMode === "grid" ? (
+                  <>
+                    <DartBoard
+                      onDartPress={handlePressDart}
+                      disabled={showMultiplier}
+                    />
+                    <MultiplierSelector
+                      dartScore={tempDart || 0}
+                      onMultiplierSelect={handlePressMultiplier}
+                      visible={showMultiplier && tempDart !== null}
+                    />
+                  </>
+                ) : (
+                  <DartTarget
+                    onResolveHit={handleResolveHit}
+                    disabled={false}
+                  />
+                )}
 
                 {/* Checkout help */}
                 {currentPlayer &&
