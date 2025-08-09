@@ -36,6 +36,10 @@ import { InputModeSwitch } from "../../components/ui/InputModeSwitch";
 import { ConfettiOverlay } from "../../components/ui/ConfettiOverlay";
 import { playVictorySound } from "../../utils/sounds";
 import { getCheckoutSuggestions, formatSuggestion } from "../../utils/checkout";
+import {
+  getContractForRound,
+  computeContractPoints,
+} from "../../services/capital/contracts";
 
 export default function GameId() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -65,6 +69,8 @@ export default function GameId() {
     setFinishType,
     setFinishAtFirst,
   } = useGame(id);
+
+  const isCapital = gameType === "Capital";
 
   const [showMultiplier, setShowMultiplier] = useState<boolean>(false);
   const [tempDart, setTempDart] = useState<number | null>(null);
@@ -117,31 +123,36 @@ export default function GameId() {
     setTempDart(null);
   };
   const handleResolveHit = async (score: number, multiplier: number) => {
-    // Détection optimiste avant mutation (pour garantir le son sous gesture Web)
-    const preScore = currentPlayer?.getScore() ?? 0;
-    const postScore = preScore - score * multiplier;
-    const willFinishNow =
-      postScore === 0 &&
-      (finishType === "classic" ||
-        (finishType === "double" && multiplier === 2));
+    if (!isCapital) {
+      // Détection optimiste avant mutation (pour garantir le son sous gesture Web)
+      const preScore = currentPlayer?.getScore() ?? 0;
+      const postScore = preScore - score * multiplier;
+      const willFinishNow =
+        postScore === 0 &&
+        (finishType === "classic" ||
+          (finishType === "double" && multiplier === 2));
 
-    if (willFinishNow && gameStatus !== "finished") {
-      setShowConfetti(true);
-      setTimeout(() => setShowConfetti(false), 2200);
-      playVictorySound().catch(() => {});
-    }
+      if (willFinishNow && gameStatus !== "finished") {
+        setShowConfetti(true);
+        setTimeout(() => setShowConfetti(false), 2200);
+        playVictorySound().catch(() => {});
+      }
 
-    const beforeRanking = ranking.length;
-    await addDart(score, multiplier);
-    const afterRanking = ranking.length;
-    if (
-      !willFinishNow &&
-      afterRanking > beforeRanking &&
-      gameStatus !== "finished"
-    ) {
-      setShowConfetti(true);
-      setTimeout(() => setShowConfetti(false), 2200);
-      playVictorySound().catch(() => {});
+      const beforeRanking = ranking.length;
+      await addDart(score, multiplier);
+      const afterRanking = ranking.length;
+      if (
+        !willFinishNow &&
+        afterRanking > beforeRanking &&
+        gameStatus !== "finished"
+      ) {
+        setShowConfetti(true);
+        setTimeout(() => setShowConfetti(false), 2200);
+        playVictorySound().catch(() => {});
+      }
+    } else {
+      // Capital: simple ajout sans détection de finish immédiat
+      await addDart(score, multiplier);
     }
   };
 
@@ -180,46 +191,45 @@ export default function GameId() {
   }, [game]);
 
   if (gameStatus === "finished") {
+    const orderedPlayers = [...players].sort((a, b) =>
+      isCapital ? b.getScore() - a.getScore() : a.getScore() - b.getScore()
+    );
     return (
       <Container style={{ flexDirection: "column", justifyContent: "center" }}>
         <Card style={{ alignItems: "center", margin: 20 }} variant="elevated">
           <Text style={{ fontSize: 28, fontWeight: "bold", marginBottom: 8 }}>
             🎉 Partie terminée !
           </Text>
-          {ranking.length > 0 && (
-            <Text style={{ fontSize: 18, marginBottom: 4 }}>
-              Gagnant : {ranking[0].getName()}
-            </Text>
-          )}
+          <Text style={{ fontSize: 18, marginBottom: 4 }}>
+            Gagnant : {orderedPlayers[0]?.getName()}
+          </Text>
           <View style={{ width: "100%", gap: 8, marginTop: 12 }}>
-            {[...players]
-              .sort((a, b) => a.getScore() - b.getScore())
-              .map((player, idx) => (
-                <Card
-                  key={player.getId()}
-                  variant={idx === 0 ? "elevated" : "outlined"}
+            {orderedPlayers.map((player, idx) => (
+              <Card
+                key={player.getId()}
+                variant={idx === 0 ? "elevated" : "outlined"}
+              >
+                <View
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                  }}
                 >
-                  <View
+                  <Text
                     style={{
-                      flexDirection: "row",
-                      alignItems: "center",
-                      justifyContent: "space-between",
+                      fontSize: 16,
+                      fontWeight: idx === 0 ? "bold" : "normal",
                     }}
                   >
-                    <Text
-                      style={{
-                        fontSize: 16,
-                        fontWeight: idx === 0 ? "bold" : "normal",
-                      }}
-                    >
-                      {idx + 1}. {player.getName()}
-                    </Text>
-                    <Text style={{ fontSize: 16, fontWeight: "bold" }}>
-                      {player.getScore()} pts
-                    </Text>
-                  </View>
-                </Card>
-              ))}
+                    {idx + 1}. {player.getName()}
+                  </Text>
+                  <Text style={{ fontSize: 16, fontWeight: "bold" }}>
+                    {player.getScore()} pts
+                  </Text>
+                </View>
+              </Card>
+            ))}
           </View>
           <View style={{ flexDirection: "row", gap: 12, marginTop: 16 }}>
             <Button
@@ -258,10 +268,12 @@ export default function GameId() {
               zIndex: 10,
             }}
           >
-            <ConfettiOverlay
-              visible={showConfetti}
-              onEnd={() => setShowConfetti(false)}
-            />
+            {!isCapital && (
+              <ConfettiOverlay
+                visible={showConfetti}
+                onEnd={() => setShowConfetti(false)}
+              />
+            )}
             <View
               style={{
                 flexDirection: "row",
@@ -284,6 +296,42 @@ export default function GameId() {
             </View>
             {game && <CardHeader game={game} />}
 
+            {isCapital && (
+              <View style={{ width: "100%", alignItems: "center" }}>
+                <Card
+                  style={{
+                    margin: 16,
+                    backgroundColor: "rgba(59, 130, 246, 0.15)",
+                    borderColor: "rgba(59, 130, 246, 0.35)",
+                    borderWidth: 1,
+                    width: "90%",
+                  }}
+                  variant="outlined"
+                >
+                  {(() => {
+                    const idx = Math.max(0, (gameRows.length || 1) - 1);
+                    const c = getContractForRound(idx);
+                    return (
+                      <View style={{ gap: 8 }}>
+                        <Text
+                          style={{
+                            fontSize: 16,
+                            fontWeight: "700",
+                            color: "#ffffff",
+                          }}
+                        >
+                          Contrat ({idx + 1}/14): {c.label}
+                        </Text>
+                        <Text style={{ fontSize: 14, color: "#e5e7eb" }}>
+                          {c.description}
+                        </Text>
+                      </View>
+                    );
+                  })()}
+                </Card>
+              </View>
+            )}
+
             {canPlay && (
               <>
                 {inputMode === "grid" ? (
@@ -305,8 +353,9 @@ export default function GameId() {
                   />
                 )}
 
-                {/* Checkout help */}
-                {currentPlayer &&
+                {/* Checkout help (x01 uniquement) */}
+                {!isCapital &&
+                  currentPlayer &&
                   (() => {
                     const remaining = currentPlayer.getScore();
                     const routes = getCheckoutSuggestions(
@@ -407,9 +456,22 @@ export default function GameId() {
                         marginBottom: 8,
                       }}
                     >
-                      {currentPlayerInRow
-                        .getDarts()
-                        .reduce((a, b) => a + b.score * b.multiplier, 0)}{" "}
+                      {(() => {
+                        if (!isCapital) {
+                          return currentPlayerInRow
+                            .getDarts()
+                            .reduce((a, b) => a + b.score * b.multiplier, 0);
+                        }
+                        const roundIdx = Math.max(
+                          0,
+                          (gameRows.length || 1) - 1
+                        );
+                        const c = getContractForRound(roundIdx);
+                        return computeContractPoints(
+                          c.key as any,
+                          currentPlayerInRow.getDarts()
+                        );
+                      })()}{" "}
                       points
                     </Text>
                   )}
@@ -485,45 +547,49 @@ export default function GameId() {
             Paramètres
           </Title>
 
-          <View style={{ marginVertical: 16 }}>
-            <BouncyCheckbox
-              bounceEffectIn={1.5}
-              size={24}
-              fillColor="#ef4444"
-              unfillColor="transparent"
-              iconStyle={{ borderColor: "#ef4444", borderWidth: 2 }}
-              innerIconStyle={{ borderWidth: 2 }}
-              isChecked={finishType === "double"}
-              textComponent={
-                <Text style={{ marginLeft: 12, fontSize: 16 }}>
-                  Finir sur un double
-                </Text>
-              }
-              onPress={async (isChecked: boolean) => {
-                await setFinishType(isChecked ? "double" : "classic");
-              }}
-            />
-          </View>
+          {!isCapital && (
+            <View style={{ marginVertical: 16 }}>
+              <BouncyCheckbox
+                bounceEffectIn={1.5}
+                size={24}
+                fillColor="#ef4444"
+                unfillColor="transparent"
+                iconStyle={{ borderColor: "#ef4444", borderWidth: 2 }}
+                innerIconStyle={{ borderWidth: 2 }}
+                isChecked={finishType === "double"}
+                textComponent={
+                  <Text style={{ marginLeft: 12, fontSize: 16 }}>
+                    Finir sur un double
+                  </Text>
+                }
+                onPress={async (isChecked: boolean) => {
+                  await setFinishType(isChecked ? "double" : "classic");
+                }}
+              />
+            </View>
+          )}
 
-          <View style={{ marginVertical: 16 }}>
-            <BouncyCheckbox
-              bounceEffectIn={1.5}
-              size={24}
-              fillColor="#ef4444"
-              unfillColor="transparent"
-              iconStyle={{ borderColor: "#ef4444", borderWidth: 2 }}
-              innerIconStyle={{ borderWidth: 2 }}
-              isChecked={isFinishAtFirst}
-              textComponent={
-                <Text style={{ marginLeft: 12, fontSize: 16 }}>
-                  Fin au 1er gagnant
-                </Text>
-              }
-              onPress={async (isChecked: boolean) => {
-                await setFinishAtFirst(isChecked);
-              }}
-            />
-          </View>
+          {!isCapital && (
+            <View style={{ marginVertical: 16 }}>
+              <BouncyCheckbox
+                bounceEffectIn={1.5}
+                size={24}
+                fillColor="#ef4444"
+                unfillColor="transparent"
+                iconStyle={{ borderColor: "#ef4444", borderWidth: 2 }}
+                innerIconStyle={{ borderWidth: 2 }}
+                isChecked={isFinishAtFirst}
+                textComponent={
+                  <Text style={{ marginLeft: 12, fontSize: 16 }}>
+                    Fin au 1er gagnant
+                  </Text>
+                }
+                onPress={async (isChecked: boolean) => {
+                  await setFinishAtFirst(isChecked);
+                }}
+              />
+            </View>
+          )}
 
           <View style={{ marginTop: 32 }}>
             <Button

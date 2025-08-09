@@ -14,7 +14,7 @@ import { useColorScheme } from "react-native";
 export const PointsMode: Record<GameModeType, number> = {
   "501": 501,
   "301": 301,
-  Capital: 1000,
+  Capital: 0,
 };
 
 const GAME_MODES: GameModeType[] = ["501", "301", "Capital"];
@@ -52,7 +52,8 @@ export default function NewScreen() {
       },
       Capital: {
         icon: "💰",
-        description: "Départ 1000. Mode capital.",
+        description:
+          "14 tours de contrats: 20, triple, 19, double, 18, side-by-side, 17, suite, 16, couleur, 15, 57, 14, centre. Départ 0. Score si contrat réussi.",
       },
     };
 

@@ -2,6 +2,10 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import Player from "./player";
 import PlayerInRow from "./playerInRow";
 import { DartsType } from "../types";
+import {
+  computeContractPoints,
+  getContractForRound,
+} from "../services/capital/contracts";
 
 export default class Game {
   id: string;
@@ -180,6 +184,13 @@ export default class Game {
       currentPlayerInRow.addDart(dart);
       currentPlayerInRow.setScore(currentPlayerInRow.getScore() + scoreDart);
 
+      // Logique spécifique Capital: on ne décrémente pas le score du joueur au fil des fléchettes,
+      // l'attribution se fait en fin de tour via nextPlayer() selon le contrat.
+      if (this.type === "Capital") {
+        await this.save();
+        return;
+      }
+
       const preScore = player.getScore();
       const postScore = preScore - scoreDart;
       const isDoubleOut = this.finishType === "double";
@@ -302,7 +313,7 @@ export default class Game {
       } else if (this.type === "301") {
         player.score = 301;
       } else if (this.type === "Capital") {
-        player.score = 1000;
+        player.score = 0;
       } else {
         const parsed = parseInt(this.type, 10);
         player.score = isNaN(parsed) ? 501 : parsed;
@@ -360,7 +371,10 @@ export default class Game {
 
     const dart = currentPlayerInRow.removerLastDart();
     const player = this.getPlayerById(currentPlayerInRow.player.id);
-    player?.setScore(player?.getScore() + dart.score * dart.multiplier);
+    if (this.type !== "Capital") {
+      // x01: on redonne les points soustraits
+      player?.setScore(player?.getScore() + dart.score * dart.multiplier);
+    }
     currentPlayerInRow.setScore(
       currentPlayerInRow.getScore() - dart.score * dart.multiplier
     );
@@ -377,6 +391,28 @@ export default class Game {
       await this.resetCurrentPlayerInRow(this.currentPlayer());
     }
 
+    // Capital: à la fin du tour du joueur courant, évaluer le contrat du round et attribuer les points
+    if (this.type === "Capital") {
+      const currentPlayerInRow = this.getCurrentPlayerInRow();
+      if (!currentPlayerInRow) {
+        throw new Error("Aucun joueur en cours");
+      }
+      const player = this.getPlayerById(currentPlayerInRow.player.id);
+      if (!player) {
+        throw new Error("Joueur introuvable");
+      }
+      const roundIndex = Math.max(0, this.rows.length - 1);
+      const contract = getContractForRound(roundIndex);
+      const points = computeContractPoints(
+        contract.key as any,
+        currentPlayerInRow.getDarts()
+      );
+      if (points > 0) {
+        player.setScore(player.getScore() + points);
+      }
+      await this.save();
+    }
+
     const player = this.getNextPlayerToPlay();
 
     if (!player) {
@@ -385,7 +421,7 @@ export default class Game {
 
     const playerInRow = new PlayerInRow(player, 0, []);
 
-    if (player.getScore() === 0) {
+    if (this.type !== "Capital" && player.getScore() === 0) {
       playerInRow.setScore(0);
       playerInRow.darts = [
         {
@@ -405,13 +441,25 @@ export default class Game {
 
     const currentRow = this.getCurrentRow();
     if (!currentRow || currentRow.length === this.players.length) {
+      // Si Capital: si on vient d'achever le 14e round (rows.length === 14), on termine la partie
+      if (
+        this.type === "Capital" &&
+        currentRow &&
+        currentRow.length === this.players.length
+      ) {
+        if (this.rows.length >= 14) {
+          this.status = "finished";
+          await this.save();
+          return;
+        }
+      }
       this.rows.push([playerInRow]);
     } else {
       currentRow.push(playerInRow);
     }
 
     await this.save();
-    if (player.getScore() === 0) {
+    if (this.type !== "Capital" && player.getScore() === 0) {
       await this.nextPlayer();
     }
   }

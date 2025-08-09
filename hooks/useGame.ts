@@ -86,7 +86,7 @@ export const useGame = (gameId?: string) => {
     
     const player = new Player(
       currentGame.getNextPlayerId(),
-      currentGame.type === 'Capital' ? 1000 : parseInt(currentGame.type)
+      currentGame.type === 'Capital' ? 0 : parseInt(currentGame.type)
     );
     
     if (name) {
