@@ -479,34 +479,56 @@ export default class Game {
   static async getAllFromStorage() {
     return await AsyncStorage.getAllKeys()
       .then((keys) => {
-        const filteredKeys = keys.filter((key) => {
-          return /darts.*/.test(key);
-        });
-
+        // Ne garder que les clés des parties: 'darts' + alphanum uniquement
+        // Exclut par ex. 'darts-bli-settings'
+        const gameKeyRegex = /^darts[0-9A-Za-z]+$/;
+        const filteredKeys = keys.filter((key) => gameKeyRegex.test(key));
         return AsyncStorage.multiGet(filteredKeys);
       })
       .then((keyValuePairs) => {
-        return keyValuePairs.map((keyValuePair) => {
-          const [_id, value] = keyValuePair;
-          if (!value) {
-            return;
-          }
+        const games = keyValuePairs
+          .map(([storageId, value]) => {
+            let g: any = null;
+            try {
+              g = value ? JSON.parse(value) : {};
+            } catch (e) {
+              g = {};
+            }
+            // Migration douce: compléter les champs manquants
+            if (typeof g !== "object" || g === null) g = {};
+            g.id = typeof g.id === "string" ? g.id : storageId;
+            g.type = typeof g.type === "string" ? g.type : "501";
+            g.status = typeof g.status === "string" ? g.status : "pending";
+            g.finishType = g.finishType === "double" ? "double" : "classic";
+            g.isFinishAtFirst = Boolean(g.isFinishAtFirst);
+            g.players = Array.isArray(g.players) ? g.players : [];
+            g.rows = Array.isArray(g.rows) ? g.rows : [];
+            g.ranking = Array.isArray(g.ranking) ? g.ranking : [];
+            return g;
+          })
+          .filter((g) => !!g && typeof g.id === "string");
 
-          return JSON.parse(value);
-        });
+        return games as any[];
       })
       .catch((error) => {
         console.error(error);
+        return [];
       });
   }
 
   static async getByIdFromStorage(id: string) {
     return await AsyncStorage.getItem(id)
       .then((value) => {
-        return JSON.parse(value || "{}");
+        if (!value) return {};
+        try {
+          return JSON.parse(value);
+        } catch (e) {
+          return {};
+        }
       })
       .catch((error) => {
         console.error(error);
+        return {};
       });
   }
 
@@ -517,6 +539,7 @@ export default class Game {
       })
       .catch((error) => {
         console.error(error);
+        return false;
       });
   }
 }

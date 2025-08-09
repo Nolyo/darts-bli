@@ -3,6 +3,7 @@ import { useNavigation } from "expo-router";
 import { useEffect } from "react";
 import { Container, Text, View } from "../components/Themed";
 import { Card } from "../components/ui/Card";
+import { PageTransition } from "../components/ui/PageTransition";
 import BouncyCheckbox from "react-native-bouncy-checkbox";
 import { bluePrimary } from "../constants/Css";
 import { useGameStore } from "../stores/gameStore";
@@ -48,152 +49,157 @@ export default function SettingsScreen() {
   }, [navigation]);
 
   return (
-    <Container style={styles.container}>
-      <ScrollView
-        style={styles.scrollView}
-        showsVerticalScrollIndicator={false}
-      >
-        <View style={styles.header}>
-          <Text style={styles.title}>⚙️ Réglages</Text>
-          <Text style={styles.subtitle}>
-            Personnalisez votre expérience de jeu
-          </Text>
-        </View>
-
-        {/* Section Jeu */}
-        <Card variant="elevated" style={styles.section}>
-          <Text style={styles.sectionTitle}>🎯 Paramètres de jeu</Text>
-
-          <View style={[styles.settingItem, dynamicStyles.settingItem]}>
-            <View style={styles.settingItemContent}>
-              <View style={styles.settingTextContainer}>
-                <Text style={styles.settingLabel}>
-                  Aide au checkout (finir plus vite)
-                </Text>
-                <Text style={styles.settingDescription}>
-                  Affiche des suggestions de flèches pour terminer (double-out)
-                </Text>
-              </View>
-              <BouncyCheckbox
-                isChecked={checkoutHelpEnabled}
-                onPress={(checked: boolean) => setCheckoutHelpEnabled(checked)}
-                fillColor={bluePrimary}
-                unfillColor="transparent"
-                iconStyle={{ borderColor: bluePrimary, borderWidth: 2 }}
-                innerIconStyle={{ borderWidth: 2 }}
-                size={24}
-                disableText
-              />
-            </View>
-          </View>
-
-          <View style={[styles.settingItem, dynamicStyles.settingItem]}>
-            <View style={styles.settingItemContent}>
-              <View style={styles.settingTextContainer}>
-                <Text style={styles.settingLabel}>Haptics</Text>
-                <Text style={styles.settingDescription}>
-                  Vibrations à l’impact et aux notifications
-                </Text>
-              </View>
-              <BouncyCheckbox
-                isChecked={hapticsEnabled}
-                onPress={(checked: boolean) => setHapticsEnabled(checked)}
-                fillColor={bluePrimary}
-                unfillColor="transparent"
-                iconStyle={{ borderColor: bluePrimary, borderWidth: 2 }}
-                innerIconStyle={{ borderWidth: 2 }}
-                size={24}
-                disableText
-              />
-            </View>
-          </View>
-        </Card>
-
-        {/* Section Apparence */}
-        <Card variant="elevated" style={styles.section}>
-          <Text style={styles.sectionTitle}>🎨 Apparence</Text>
-
-          <View style={[styles.settingItem, dynamicStyles.settingItem]}>
-            <View style={styles.settingItemContent}>
-              <View style={styles.settingTextContainer}>
-                <Text style={styles.settingLabel}>Mode sombre</Text>
-                <Text style={styles.settingDescription}>
-                  Basculer entre le thème clair et sombre
-                </Text>
-              </View>
-              <BouncyCheckbox
-                isChecked={currentTheme === "dark"}
-                onPress={() => {}}
-                fillColor={bluePrimary}
-                unfillColor="transparent"
-                iconStyle={{ borderColor: bluePrimary, borderWidth: 2 }}
-                innerIconStyle={{ borderWidth: 2 }}
-                size={24}
-                disableText
-                disabled
-              />
-            </View>
-          </View>
-
-          <View style={styles.infoBox}>
-            <Text style={styles.infoText}>
-              💡 Thème sombre par défaut (app):
+    <PageTransition direction="bottom">
+      <Container style={styles.container}>
+        <ScrollView
+          style={styles.scrollView}
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.header}>
+            <Text style={styles.title}>⚙️ Réglages</Text>
+            <Text style={styles.subtitle}>
+              Personnalisez votre expérience de jeu
             </Text>
           </View>
 
-          <View style={[styles.settingItem, dynamicStyles.settingItem]}>
-            <View style={styles.settingItemContent}>
-              <View style={styles.settingTextContainer}>
-                <Text style={styles.settingLabel}>
-                  Activer le thème sombre par défaut
-                </Text>
-                <Text style={styles.settingDescription}>
-                  Utiliser le thème sombre dès le lancement (si supporté)
-                </Text>
+          {/* Section Jeu */}
+          <Card variant="elevated" style={styles.section}>
+            <Text style={styles.sectionTitle}>🎯 Paramètres de jeu</Text>
+
+            <View style={[styles.settingItem, dynamicStyles.settingItem]}>
+              <View style={styles.settingItemContent}>
+                <View style={styles.settingTextContainer}>
+                  <Text style={styles.settingLabel}>
+                    Aide au checkout (finir plus vite)
+                  </Text>
+                  <Text style={styles.settingDescription}>
+                    Affiche des suggestions de flèches pour terminer
+                    (double-out)
+                  </Text>
+                </View>
+                <BouncyCheckbox
+                  isChecked={checkoutHelpEnabled}
+                  onPress={(checked: boolean) =>
+                    setCheckoutHelpEnabled(checked)
+                  }
+                  fillColor={bluePrimary}
+                  unfillColor="transparent"
+                  iconStyle={{ borderColor: bluePrimary, borderWidth: 2 }}
+                  innerIconStyle={{ borderWidth: 2 }}
+                  size={24}
+                  disableText
+                />
               </View>
-              <BouncyCheckbox
-                isChecked={preferDarkTheme}
-                onPress={(checked: boolean) => setPreferDarkTheme(checked)}
-                fillColor={bluePrimary}
-                unfillColor="transparent"
-                iconStyle={{ borderColor: bluePrimary, borderWidth: 2 }}
-                innerIconStyle={{ borderWidth: 2 }}
-                size={24}
-                disableText
-              />
             </View>
+
+            <View style={[styles.settingItem, dynamicStyles.settingItem]}>
+              <View style={styles.settingItemContent}>
+                <View style={styles.settingTextContainer}>
+                  <Text style={styles.settingLabel}>Haptics</Text>
+                  <Text style={styles.settingDescription}>
+                    Vibrations à l’impact et aux notifications
+                  </Text>
+                </View>
+                <BouncyCheckbox
+                  isChecked={hapticsEnabled}
+                  onPress={(checked: boolean) => setHapticsEnabled(checked)}
+                  fillColor={bluePrimary}
+                  unfillColor="transparent"
+                  iconStyle={{ borderColor: bluePrimary, borderWidth: 2 }}
+                  innerIconStyle={{ borderWidth: 2 }}
+                  size={24}
+                  disableText
+                />
+              </View>
+            </View>
+          </Card>
+
+          {/* Section Apparence */}
+          <Card variant="elevated" style={styles.section}>
+            <Text style={styles.sectionTitle}>🎨 Apparence</Text>
+
+            <View style={[styles.settingItem, dynamicStyles.settingItem]}>
+              <View style={styles.settingItemContent}>
+                <View style={styles.settingTextContainer}>
+                  <Text style={styles.settingLabel}>Mode sombre</Text>
+                  <Text style={styles.settingDescription}>
+                    Basculer entre le thème clair et sombre
+                  </Text>
+                </View>
+                <BouncyCheckbox
+                  isChecked={currentTheme === "dark"}
+                  onPress={() => {}}
+                  fillColor={bluePrimary}
+                  unfillColor="transparent"
+                  iconStyle={{ borderColor: bluePrimary, borderWidth: 2 }}
+                  innerIconStyle={{ borderWidth: 2 }}
+                  size={24}
+                  disableText
+                  disabled
+                />
+              </View>
+            </View>
+
+            <View style={styles.infoBox}>
+              <Text style={styles.infoText}>
+                💡 Thème sombre par défaut (app):
+              </Text>
+            </View>
+
+            <View style={[styles.settingItem, dynamicStyles.settingItem]}>
+              <View style={styles.settingItemContent}>
+                <View style={styles.settingTextContainer}>
+                  <Text style={styles.settingLabel}>
+                    Activer le thème sombre par défaut
+                  </Text>
+                  <Text style={styles.settingDescription}>
+                    Utiliser le thème sombre dès le lancement (si supporté)
+                  </Text>
+                </View>
+                <BouncyCheckbox
+                  isChecked={preferDarkTheme}
+                  onPress={(checked: boolean) => setPreferDarkTheme(checked)}
+                  fillColor={bluePrimary}
+                  unfillColor="transparent"
+                  iconStyle={{ borderColor: bluePrimary, borderWidth: 2 }}
+                  innerIconStyle={{ borderWidth: 2 }}
+                  size={24}
+                  disableText
+                />
+              </View>
+            </View>
+          </Card>
+
+          {/* Section À propos */}
+          <Card variant="elevated" style={styles.section}>
+            <Text style={styles.sectionTitle}>ℹ️ À propos</Text>
+
+            <View style={[styles.aboutContainer, dynamicStyles.aboutContainer]}>
+              <View
+                style={[
+                  styles.aboutItem,
+                  { borderBottomColor: dynamicStyles.borderColor },
+                ]}
+              >
+                <Text style={styles.aboutLabel}>Version</Text>
+                <Text style={styles.aboutValue}>1.1.0 (Beta)</Text>
+              </View>
+
+              <View style={[styles.aboutItem, styles.aboutItemLast]}>
+                <Text style={styles.aboutLabel}>Développé avec</Text>
+                <Text style={styles.aboutValue}>React Native + Expo</Text>
+              </View>
+            </View>
+          </Card>
+
+          <View style={styles.footer}>
+            <Text style={styles.footerText}>
+              🎯 Dart's Bli - Votre compagnon de fléchettes
+            </Text>
           </View>
-        </Card>
-
-        {/* Section À propos */}
-        <Card variant="elevated" style={styles.section}>
-          <Text style={styles.sectionTitle}>ℹ️ À propos</Text>
-
-          <View style={[styles.aboutContainer, dynamicStyles.aboutContainer]}>
-            <View
-              style={[
-                styles.aboutItem,
-                { borderBottomColor: dynamicStyles.borderColor },
-              ]}
-            >
-              <Text style={styles.aboutLabel}>Version</Text>
-              <Text style={styles.aboutValue}>1.1.0 (Beta)</Text>
-            </View>
-
-            <View style={[styles.aboutItem, styles.aboutItemLast]}>
-              <Text style={styles.aboutLabel}>Développé avec</Text>
-              <Text style={styles.aboutValue}>React Native + Expo</Text>
-            </View>
-          </View>
-        </Card>
-
-        <View style={styles.footer}>
-          <Text style={styles.footerText}>
-            🎯 Dart's Bli - Votre compagnon de fléchettes
-          </Text>
-        </View>
-      </ScrollView>
-    </Container>
+        </ScrollView>
+      </Container>
+    </PageTransition>
   );
 }
 

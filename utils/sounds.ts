@@ -2,6 +2,7 @@
 // Si expo-av n'est pas installé, les fonctions sont no-op.
 
 import { Platform } from "react-native";
+import { useGameStore } from "../stores/gameStore";
 
 let ExpoAudio: any = null;
 try {
@@ -15,6 +16,13 @@ const DEFAULT_VICTORY_URL =
   "https://assets.mixkit.co/sfx/preview/mixkit-game-level-completed-2059.mp3";
 
 export async function playVictorySound(url: string = DEFAULT_VICTORY_URL) {
+  // Respect du réglage utilisateur
+  try {
+    const soundsEnabled = (useGameStore.getState() as any).soundsEnabled;
+    if (!soundsEnabled) return;
+  } catch (e) {
+    // en cas d'accès store impossible, on continue silencieusement
+  }
   // Web: fallback HTML5 Audio (meilleure compatibilité en dev navigateur)
   if (Platform.OS === "web") {
     try {

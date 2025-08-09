@@ -7,6 +7,7 @@ import { useGame } from "../../hooks/useGame";
 import { showError } from "../../utils/notifications";
 import type { GameModeType } from "../../types";
 import { Button } from "../../components/ui/Button";
+import { PageTransition } from "../../components/ui/PageTransition";
 import { Modal } from "../../components/ui/Modal";
 import { Card } from "../../components/ui/Card";
 import { useColorScheme } from "react-native";
@@ -170,141 +171,145 @@ export default function NewScreen() {
   };
 
   return (
-    <Container style={{ justifyContent: "flex-start" }}>
-      <Title style={{ marginVertical: 20 }}>🎯 Nouvelle partie</Title>
+    <PageTransition>
+      <Container style={{ justifyContent: "flex-start" }}>
+        <Title style={{ marginVertical: 20 }}>🎯 Nouvelle partie</Title>
 
-      <SafeAreaView style={{ width: "100%", flex: 1, paddingHorizontal: 20 }}>
-        <View style={{ marginBottom: 20 }}>
-          <Text style={{ fontSize: 16, marginBottom: 8, fontWeight: "600" }}>
-            Mode de jeu
-          </Text>
-          <Text style={styles.modeSelectedDesc}>
-            {MODE_INFO[gameType as GameModeType].description}
-          </Text>
-          <View style={[styles.modeGrid, { marginTop: 8 }]}>
-            {GAME_MODES.map((mode) => {
-              const selected = gameType === mode;
-              return (
-                <Pressable
-                  key={mode}
-                  onPress={() => handleSelectGameMode(mode)}
-                  style={({ pressed }) => [
-                    { width: "31%", aspectRatio: 1 },
-                    pressed && { transform: [{ scale: 0.98 }], opacity: 0.9 },
-                  ]}
-                >
-                  <Card
-                    variant={selected ? "elevated" : "outlined"}
-                    style={[
-                      styles.modeCard,
-                      selected && styles.modeCardSelected,
+        <SafeAreaView style={{ width: "100%", flex: 1, paddingHorizontal: 20 }}>
+          <View style={{ marginBottom: 20 }}>
+            <Text style={{ fontSize: 16, marginBottom: 8, fontWeight: "600" }}>
+              Mode de jeu
+            </Text>
+            <Text style={styles.modeSelectedDesc}>
+              {MODE_INFO[gameType as GameModeType].description}
+            </Text>
+            <View style={[styles.modeGrid, { marginTop: 8 }]}>
+              {GAME_MODES.map((mode) => {
+                const selected = gameType === mode;
+                return (
+                  <Pressable
+                    key={mode}
+                    onPress={() => handleSelectGameMode(mode)}
+                    style={({ pressed }) => [
+                      { width: "31%", aspectRatio: 1 },
+                      pressed && { transform: [{ scale: 0.98 }], opacity: 0.9 },
                     ]}
                   >
-                    <Text style={styles.modeIcon}>{MODE_INFO[mode].icon}</Text>
-                    <Text style={styles.modeTitle}>{mode}</Text>
-                  </Card>
-                </Pressable>
-              );
-            })}
+                    <Card
+                      variant={selected ? "elevated" : "outlined"}
+                      style={[
+                        styles.modeCard,
+                        selected && styles.modeCardSelected,
+                      ]}
+                    >
+                      <Text style={styles.modeIcon}>
+                        {MODE_INFO[mode].icon}
+                      </Text>
+                      <Text style={styles.modeTitle}>{mode}</Text>
+                    </Card>
+                  </Pressable>
+                );
+              })}
+            </View>
           </View>
-        </View>
 
-        <View style={{ marginTop: 32, marginBottom: 20 }}>
-          <Button
-            title="➕ Ajouter un joueur"
-            onPress={handleAddPlayer}
-            variant="outline"
-            size="md"
-            style={{ width: "100%" }}
-          />
-          {localPlayers.length > 1 && (
-            <View style={{ marginTop: 12 }}>
+          <View style={{ marginTop: 32, marginBottom: 20 }}>
+            <View style={{ gap: 12, marginBottom: 16 }}>
+              {localPlayers.map((_player) => {
+                const playerName = _player.getName();
+                const isNameValid =
+                  playerName.trim() === "" || isValidPlayerName(playerName);
+
+                return (
+                  <View key={_player.getId()}>
+                    <TextInput
+                      ref={(ref) => {
+                        inputRefs.current[_player.getId()] = ref;
+                      }}
+                      style={[
+                        styles.playerInput,
+                        !isNameValid && styles.playerInputInvalid,
+                      ]}
+                      placeholder={`Joueur ${_player.getId()}`}
+                      placeholderTextColor="#9ca3af"
+                      value={playerName}
+                      onChangeText={(text) => updateUser(_player, text)}
+                      autoFocus={_player.getId() === lastAddedPlayerId}
+                      returnKeyType="done"
+                      blurOnSubmit={true}
+                    />
+                    {!isNameValid && (
+                      <Text style={styles.errorText}>
+                        Le nom doit contenir au moins 2 lettres
+                      </Text>
+                    )}
+                  </View>
+                );
+              })}
+            </View>
+
+            <Button
+              title="➕ Ajouter un joueur"
+              onPress={handleAddPlayer}
+              variant="outline"
+              size="md"
+              style={{ width: "100%" }}
+            />
+            {localPlayers.length > 1 && (
+              <View style={{ marginTop: 12 }}>
+                <Button
+                  title="🔀 Mélanger l'ordre"
+                  onPress={shufflePlayers}
+                  variant="outline"
+                  size="md"
+                  style={{ width: "100%" }}
+                />
+              </View>
+            )}
+          </View>
+
+          {localPlayers.length > 0 && (
+            <View style={{ marginTop: 32 }}>
               <Button
-                title="🔀 Mélanger l'ordre"
-                onPress={shufflePlayers}
-                variant="outline"
-                size="md"
+                title={`🚀 Démarrer la partie (${localPlayers.length} joueur${
+                  localPlayers.length > 1 ? "s" : ""
+                })`}
+                onPress={handleOpenConfirm}
+                variant="primary"
+                size="lg"
                 style={{ width: "100%" }}
+                disabled={!areAllPlayerNamesValid()}
               />
             </View>
           )}
-        </View>
-
-        <View style={{ gap: 12 }}>
-          {localPlayers.map((_player) => {
-            const playerName = _player.getName();
-            const isNameValid =
-              playerName.trim() === "" || isValidPlayerName(playerName);
-
-            return (
-              <View key={_player.getId()}>
-                <TextInput
-                  ref={(ref) => {
-                    inputRefs.current[_player.getId()] = ref;
-                  }}
-                  style={[
-                    styles.playerInput,
-                    !isNameValid && styles.playerInputInvalid,
-                  ]}
-                  placeholder={`Joueur ${_player.getId()}`}
-                  placeholderTextColor="#9ca3af"
-                  value={playerName}
-                  onChangeText={(text) => updateUser(_player, text)}
-                  autoFocus={_player.getId() === lastAddedPlayerId}
-                  returnKeyType="done"
-                  blurOnSubmit={true}
-                />
-                {!isNameValid && (
-                  <Text style={styles.errorText}>
-                    Le nom doit contenir au moins 2 lettres
-                  </Text>
-                )}
-              </View>
-            );
-          })}
-        </View>
-
-        {localPlayers.length > 0 && (
-          <View style={{ marginTop: 32 }}>
+        </SafeAreaView>
+        <Modal visible={showConfirm} onClose={handleCloseConfirm} size="sm">
+          <Title style={{ alignSelf: "center", marginBottom: 12 }}>
+            Confirmer le démarrage
+          </Title>
+          <Text style={{ textAlign: "center", marginBottom: 16 }}>
+            Commencer la partie avec {localPlayers.length} joueur
+            {localPlayers.length > 1 ? "s" : ""} ?
+          </Text>
+          <View style={{ flexDirection: "row", gap: 12 }}>
             <Button
-              title={`🚀 Démarrer la partie (${localPlayers.length} joueur${
-                localPlayers.length > 1 ? "s" : ""
-              })`}
-              onPress={handleOpenConfirm}
+              title="Annuler"
+              onPress={handleCloseConfirm}
+              variant="outline"
+              size="md"
+              style={{ flex: 1 }}
+            />
+            <Button
+              title="Confirmer"
+              onPress={handleConfirmStart}
               variant="primary"
-              size="lg"
-              style={{ width: "100%" }}
-              disabled={!areAllPlayerNamesValid()}
+              size="md"
+              style={{ flex: 1 }}
             />
           </View>
-        )}
-      </SafeAreaView>
-      <Modal visible={showConfirm} onClose={handleCloseConfirm} size="sm">
-        <Title style={{ alignSelf: "center", marginBottom: 12 }}>
-          Confirmer le démarrage
-        </Title>
-        <Text style={{ textAlign: "center", marginBottom: 16 }}>
-          Commencer la partie avec {localPlayers.length} joueur
-          {localPlayers.length > 1 ? "s" : ""} ?
-        </Text>
-        <View style={{ flexDirection: "row", gap: 12 }}>
-          <Button
-            title="Annuler"
-            onPress={handleCloseConfirm}
-            variant="outline"
-            size="md"
-            style={{ flex: 1 }}
-          />
-          <Button
-            title="Confirmer"
-            onPress={handleConfirmStart}
-            variant="primary"
-            size="md"
-            style={{ flex: 1 }}
-          />
-        </View>
-      </Modal>
-    </Container>
+        </Modal>
+      </Container>
+    </PageTransition>
   );
 }
 

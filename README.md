@@ -1,7 +1,26 @@
 # 🎯 Dart's Bli
 
+- Sommaire
+  - [📱 Description](#description)
+  - [🔧 Prérequis](#prerequis)
+  - [🚀 Installation](#installation)
+  - [💻 Développement Local](#developpement-local)
+    - [Lancer le serveur de développement](#lancer-le-serveur-de-developpement)
+    - [Lancer sur des plateformes spécifiques](#lancer-sur-des-plateformes-specifiques)
+    - [Tests](#tests)
+  - [📱 Utilisation avec Expo Go sur Mobile](#utilisation-avec-expo-go-sur-mobile)
+  - [📦 Build et Distribution](#build-et-distribution)
+  - [🔄 Mises à jour et CI/CD](#mises-a-jour-et-cicd)
+  - [🏗️ Structure du Projet](#structure-du-projet)
+  - [🔧 Technologies Utilisées](#technologies-utilisees)
+  - [📝 Scripts Disponibles](#scripts-disponibles)
+  - [🐛 Débogage](#debogage)
+  - [📄 Licence](#licence)
+  - [👨‍💻 Auteur](#auteur)
+
 Une application mobile de comptage de points pour les fléchettes, développée avec Expo et React Native.
 
+<a id="description"></a>
 ## 📱 Description
 
 Dart's Bli est une application de fléchettes qui permet de :
@@ -12,6 +31,7 @@ Dart's Bli est une application de fléchettes qui permet de :
 - Jouer hors ligne (aucune connexion requise)
 - Finition simple ou double finish
 
+<a id="prerequis"></a>
 ## 🔧 Prérequis
 
 Avant de commencer, assurez-vous d'avoir installé :
@@ -25,6 +45,7 @@ npm install -g pnpm
 npm install -g @expo/cli
 ```
 
+<a id="installation"></a>
 ## 🚀 Installation
 
 1. Clonez le repository :
@@ -38,8 +59,10 @@ cd darts-bli
 pnpm install
 ```
 
+<a id="developpement-local"></a>
 ## 💻 Développement Local
 
+<a id="lancer-le-serveur-de-developpement"></a>
 ### Lancer le serveur de développement
 
 ```bash
@@ -50,6 +73,7 @@ pnpm start
 expo start
 ```
 
+<a id="lancer-sur-des-plateformes-specifiques"></a>
 ### Lancer sur des plateformes spécifiques
 
 ```bash
@@ -69,6 +93,7 @@ pnpm run web
 expo start --web
 ```
 
+<a id="tests"></a>
 ### Tests
 
 ```bash
@@ -76,6 +101,7 @@ expo start --web
 pnpm test
 ```
 
+<a id="utilisation-avec-expo-go-sur-mobile"></a>
 ## 📱 Utilisation avec Expo Go sur Mobile
 
 ### Installation d'Expo Go
@@ -105,6 +131,7 @@ pnpm start
 - Secouez votre téléphone pour ouvrir le menu de développement
 - Le Hot Reload est activé par défaut
 
+<a id="build-et-distribution"></a>
 ## 📦 Build et Distribution
 
 ### Configuration EAS
@@ -153,6 +180,7 @@ Une fois le build terminé :
 eas build --platform ios --profile production
 ```
 
+<a id="mises-a-jour-et-cicd"></a>
 ## 🔄 Mises à jour et CI/CD
 
 ### Mises à jour OTA (Over-The-Air)
@@ -245,6 +273,7 @@ git commit -m "Release version $(node -p "require('./package.json').version")"
 git push origin main
 ```
 
+<a id="structure-du-projet"></a>
 ## 🏗️ Structure du Projet
 
 ```
@@ -269,6 +298,7 @@ darts-bli/
 └── package.json      # Dépendances et scripts
 ```
 
+<a id="technologies-utilisees"></a>
 ## 🔧 Technologies Utilisées
 
 - **Expo SDK** ~49.0.15
@@ -279,6 +309,7 @@ darts-bli/
 - **EAS Build** (builds natifs)
 - **EAS Update** (mises à jour OTA)
 
+<a id="scripts-disponibles"></a>
 ## 📝 Scripts Disponibles
 
 ```bash
@@ -298,6 +329,7 @@ eas update --channel preview  # Mise à jour OTA pour preview
 eas update --channel production  # Mise à jour OTA pour production
 ```
 
+<a id="debogage"></a>
 ## 🐛 Débogage
 
 ### Outils de développement
@@ -319,10 +351,12 @@ xcrun simctl spawn booted log stream --predicate 'eventMessage contains "your-ap
 expo logs
 ```
 
+<a id="licence"></a>
 ## 📄 Licence
 
 Ce projet est sous licence privée. Tous droits réservés.
 
+<a id="auteur"></a>
 ## 👨‍💻 Auteur
 
 Made with ❤️ by **Nolyo**
