@@ -16,6 +16,8 @@ interface ModalProps {
   children: React.ReactNode;
   size?: "sm" | "md" | "lg" | "full";
   showCloseButton?: boolean;
+  /** Pour ajuster la hauteur max de la zone scrollable, en % de l'écran */
+  contentMaxHeightPercent?: number;
 }
 
 export const Modal: React.FC<ModalProps> = ({
@@ -24,17 +26,18 @@ export const Modal: React.FC<ModalProps> = ({
   children,
   size = "md",
   showCloseButton = true,
+  contentMaxHeightPercent,
 }) => {
   const theme = useColorScheme();
   const isDark = theme === "dark";
 
   const getModalStyle = (): any => {
     const baseStyle: any = {
-      backgroundColor: isDark ? "#000" : "#ffffff",
+      backgroundColor: isDark ? "#0b0b0b" : "#ffffff",
       borderWidth: 2,
       borderColor: isDark ? "#374151" : "#e5e7eb",
       borderRadius: 16,
-      maxHeight: "90%",
+      maxHeight: "94%",
     };
 
     switch (size) {
@@ -78,13 +81,22 @@ export const Modal: React.FC<ModalProps> = ({
               </Pressable>
             </View>
           )}
-          <ScrollView
-            style={styles.content}
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={{ paddingBottom: 16 }}
+          <View
+            style={{
+              maxHeight: `${Math.min(
+                100,
+                Math.max(50, contentMaxHeightPercent ?? 88)
+              )}%`,
+            }}
           >
-            {children}
-          </ScrollView>
+            <ScrollView
+              style={styles.content}
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={{ paddingBottom: 16 }}
+            >
+              {children}
+            </ScrollView>
+          </View>
         </View>
       </View>
     </RNModal>
@@ -120,7 +132,6 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(0, 0, 0, 0.1)",
   },
   content: {
-    flex: 1,
     paddingTop: 16,
     paddingHorizontal: 16,
     paddingBottom: 16,

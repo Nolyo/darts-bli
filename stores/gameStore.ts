@@ -142,10 +142,7 @@ export const useGameStore = create<GameStore>()(
             get().saveGame();
           }, 150);
 
-          const totalScore = score * multiplier;
-          if (totalScore > 0) {
-            showSuccess(`${totalScore} points marqués !`);
-          }
+          // Pas de toast sur chaque fléchette: l'UI affiche déjà le résumé
 
           // Si un joueur vient de finir et que l'option "fin au 1er gagnant" n'est pas activée
           // on affiche un toast festif mais on continue la partie
@@ -175,7 +172,7 @@ export const useGameStore = create<GameStore>()(
           setTimeout(() => {
             get().saveGame();
           }, 150);
-          showInfo("Dernière fléchette supprimée");
+          // Pas de toast sur la suppression d'une fléchette
         } catch (error: any) {
           showError("Impossible de supprimer", error.message);
         }
@@ -192,10 +189,7 @@ export const useGameStore = create<GameStore>()(
           set({ currentGame });
           await saveGame();
 
-          const nextPlayerName = currentGame.currentPlayer()?.getName();
-          if (nextPlayerName) {
-            showInfo(`Au tour de ${nextPlayerName}`);
-          }
+          // Pas de toast pour l'annonce du prochain joueur
         } catch (error: any) {
           showError("Impossible de passer au joueur suivant", error.message);
         }

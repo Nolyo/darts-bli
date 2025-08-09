@@ -62,7 +62,8 @@ export default function TabOneScreen() {
         <Modal
           visible={showOnboarding}
           onClose={closeOnboardingLater}
-          size="md"
+          size="lg"
+          contentMaxHeightPercent={96}
           showCloseButton={false}
         >
           <View style={{ gap: 16 }}>

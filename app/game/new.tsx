@@ -283,7 +283,12 @@ export default function NewScreen() {
             </View>
           )}
         </SafeAreaView>
-        <Modal visible={showConfirm} onClose={handleCloseConfirm} size="sm">
+        <Modal
+          visible={showConfirm}
+          onClose={handleCloseConfirm}
+          size="md"
+          contentMaxHeightPercent={92}
+        >
           <Title style={{ alignSelf: "center", marginBottom: 12 }}>
             Confirmer le démarrage
           </Title>
