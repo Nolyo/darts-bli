@@ -64,7 +64,7 @@ export const Modal: React.FC<ModalProps> = ({
       animationType="fade"
       onRequestClose={onClose}
     >
-      <View style={styles.overlay}>
+      <View style={styles.overlay} pointerEvents={visible ? "auto" : "none"}>
         <Pressable style={styles.backdrop} onPress={onClose} />
         <View style={[getModalStyle(), styles.modal]}>
           {showCloseButton && (
@@ -81,7 +81,7 @@ export const Modal: React.FC<ModalProps> = ({
           <ScrollView
             style={styles.content}
             showsVerticalScrollIndicator={false}
-            contentContainerStyle={{ flexGrow: 1 }}
+            contentContainerStyle={{ paddingBottom: 16 }}
           >
             {children}
           </ScrollView>

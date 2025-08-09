@@ -10,6 +10,7 @@ import { useEffect } from "react";
 import { Asset } from "expo-asset";
 import { useColorScheme } from "react-native";
 import Toast from "react-native-toast-message";
+import UpdatesChecker from "../components/UpdatesChecker";
 
 export {
   // Catch any errors thrown by the Layout component.
@@ -54,6 +55,7 @@ export default function RootLayout() {
 
   return (
     <>
+      <UpdatesChecker />
       <RootLayoutNav />
       <Toast />
     </>
