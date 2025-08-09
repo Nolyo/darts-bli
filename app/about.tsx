@@ -7,6 +7,14 @@ import { useEffect } from "react";
 import { PageTransition } from "../components/ui/PageTransition";
 import { Card } from "../components/ui/Card";
 import { Button } from "../components/ui/Button";
+import * as Updates from "expo-updates";
+let AppModule: any = null;
+try {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  AppModule = require("expo-application");
+} catch (e) {
+  AppModule = null;
+}
 
 export default function AboutScreen() {
   const navigation = useNavigation();
@@ -47,6 +55,40 @@ export default function AboutScreen() {
           <Text>
             Version actuelle : 1.1.0 (Beta) ({Platform.OS.toLocaleUpperCase()})
           </Text>
+          <View style={styles.list}>
+            <View style={styles.item}>
+              <Text style={styles.bullet}>•</Text>
+              <Text style={styles.item}>
+                Runtime: {Updates.runtimeVersion || "inconnue"}
+              </Text>
+            </View>
+
+            <View style={styles.item}>
+              <Text style={styles.bullet}>•</Text>
+              <Text style={styles.item}>
+                Channel: {Updates.channel || "non défini"}
+              </Text>
+            </View>
+            <View style={styles.item}>
+              <Text style={styles.bullet}>•</Text>
+              <Text style={styles.item}>
+                Build: {AppModule?.nativeBuildVersion || "inconnu"}
+              </Text>
+            </View>
+            {Updates.updateId ? (
+              <View style={styles.item}>
+                <Text style={styles.bullet}>•</Text>
+                <Text style={styles.item}>
+                  Update ID: {String(Updates.updateId).slice(0, 10)}...
+                </Text>
+              </View>
+            ) : (
+              <View style={styles.item}>
+                <Text style={styles.bullet}>•</Text>
+                <Text style={styles.item}>Update: embedded</Text>
+              </View>
+            )}
+          </View>
         </Card>
 
         <Card variant="outlined" style={{ marginBottom: 16, padding: 10 }}>
