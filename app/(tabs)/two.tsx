@@ -1,21 +1,24 @@
 import { StyleSheet } from "react-native";
 import { Container, Text, View } from "../../components/Themed";
+import { PageTransition } from "../../components/ui/PageTransition";
 
 export default function TabTwoScreen() {
   return (
-    <Container style={styles.container}>
-      <View style={styles.content}>
-        <Text style={styles.emoji}>🎮</Text>
-        <Text style={styles.title}>Nouveau jeu</Text>
-        <Text style={styles.subtitle}>Bientôt disponible</Text>
-        <Text style={styles.description}>
-          Un nouveau jeu passionnant arrivera prochainement !
-        </Text>
-        <View style={styles.statusContainer}>
-          <Text style={styles.status}>🚧 En développement</Text>
+    <PageTransition>
+      <Container style={styles.container}>
+        <View style={styles.content}>
+          <Text style={styles.emoji}>🎮</Text>
+          <Text style={styles.title}>Nouveau jeu</Text>
+          <Text style={styles.subtitle}>Bientôt disponible</Text>
+          <Text style={styles.description}>
+            Un nouveau jeu passionnant arrivera prochainement !
+          </Text>
+          <View style={styles.statusContainer}>
+            <Text style={styles.status}>🚧 En développement</Text>
+          </View>
         </View>
-      </View>
-    </Container>
+      </Container>
+    </PageTransition>
   );
 }
 

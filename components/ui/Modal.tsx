@@ -28,8 +28,8 @@ export const Modal: React.FC<ModalProps> = ({
   const theme = useColorScheme();
   const isDark = theme === "dark";
 
-  const getModalStyle = () => {
-    const baseStyle = {
+  const getModalStyle = (): any => {
+    const baseStyle: any = {
       backgroundColor: isDark ? "#000" : "#ffffff",
       borderWidth: 2,
       borderColor: isDark ? "#374151" : "#e5e7eb",
@@ -39,11 +39,11 @@ export const Modal: React.FC<ModalProps> = ({
 
     switch (size) {
       case "sm":
-        return { ...baseStyle, width: "80%" };
+        return { ...baseStyle, width: "80%" } as any;
       case "md":
-        return { ...baseStyle, width: "90%" };
+        return { ...baseStyle, width: "90%" } as any;
       case "lg":
-        return { ...baseStyle, width: "95%" };
+        return { ...baseStyle, width: "95%" } as any;
       case "full":
         return {
           ...baseStyle,
@@ -51,9 +51,9 @@ export const Modal: React.FC<ModalProps> = ({
           height: "100%",
           borderRadius: 0,
           maxHeight: "100%",
-        };
+        } as any;
       default:
-        return { ...baseStyle, width: "90%" };
+        return { ...baseStyle, width: "90%" } as any;
     }
   };
 
