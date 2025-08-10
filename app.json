@@ -4,7 +4,7 @@
     "slug": "darts-bli",
     "version": "1.1.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/dartsbbli.png",
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
     "splash": {
@@ -17,7 +17,7 @@
       "package": "com.nolyo.dartsbli",
       "versionCode": 2,
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "foregroundImage": "./assets/images/dartsbbli.png",
         "backgroundColor": "#ffffff"
       }
     },
