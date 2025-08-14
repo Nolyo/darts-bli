@@ -40,8 +40,9 @@ jobs:
           node -e "const fs=require('fs');const p=require('./package.json');p.version=process.env.VERSION;fs.writeFileSync('package.json',JSON.stringify(p,null,2)+'\n');"
           node -e "const fs=require('fs');const app=require('./app.json');app.expo.version=process.env.VERSION;fs.writeFileSync('app.json',JSON.stringify(app,null,2)+'\n');"
 
-      - name: Sync native versions (versionCode/buildNumber)
-        run: pnpm exec eas version:sync --non-interactive
+      - name: Bump native versions (versionCode/buildNumber)
+        run: |
+          node -e "const fs=require('fs');const app=JSON.parse(fs.readFileSync('app.json','utf8'));app.expo=app.expo||{};app.expo.android=app.expo.android||{};app.expo.android.versionCode=(app.expo.android.versionCode||0)+1;app.expo.ios=app.expo.ios||{};const cur=parseInt(app.expo.ios.buildNumber||'0',10)||0;app.expo.ios.buildNumber=String(cur+1);fs.writeFileSync('app.json',JSON.stringify(app,null,2)+'\n');"
 
       - name: Build Android APK (EAS)
         run: pnpm exec eas build --platform android --profile release-apk --non-interactive --wait
