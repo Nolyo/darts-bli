@@ -20,6 +20,12 @@
       "android": {
         "credentialsSource": "remote"
       }
+    },
+    "release-apk": {
+      "android": {
+        "buildType": "apk",
+        "credentialsSource": "remote"
+      }
     }
   },
   "submit": {
