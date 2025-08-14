@@ -17,11 +17,13 @@
       }
     },
     "production": {
+      "channel": "preview",
       "android": {
         "credentialsSource": "remote"
       }
     },
     "release-apk": {
+      "channel": "preview",
       "android": {
         "buildType": "apk",
         "credentialsSource": "remote"

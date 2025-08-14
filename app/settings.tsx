@@ -7,6 +7,7 @@ import { PageTransition } from "../components/ui/PageTransition";
 import BouncyCheckbox from "react-native-bouncy-checkbox";
 import { bluePrimary } from "../constants/Css";
 import { useGameStore } from "../stores/gameStore";
+import { triggerImpactLight } from "../utils/haptics";
 
 export default function SettingsScreen() {
   const navigation = useNavigation();
@@ -102,7 +103,13 @@ export default function SettingsScreen() {
                 </View>
                 <BouncyCheckbox
                   isChecked={hapticsEnabled}
-                  onPress={(checked: boolean) => setHapticsEnabled(checked)}
+                  onPress={async (checked: boolean) => {
+                    setHapticsEnabled(checked);
+                    if (checked) {
+                      // petit retour haptique pour confirmer l'activation
+                      await triggerImpactLight().catch(() => {});
+                    }
+                  }}
                   fillColor={bluePrimary}
                   unfillColor="transparent"
                   iconStyle={{ borderColor: bluePrimary, borderWidth: 2 }}

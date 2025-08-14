@@ -37,7 +37,7 @@ import { InputModeSwitch } from "../../components/ui/InputModeSwitch";
 import { ConfettiOverlay } from "../../components/ui/ConfettiOverlay";
 import { playVictorySound } from "../../utils/sounds";
 import { useGameStore } from "../../stores/gameStore";
-import { triggerSuccess } from "../../utils/haptics";
+import { triggerSuccess, triggerImpactLight } from "../../utils/haptics";
 import { getCheckoutSuggestions, formatSuggestion } from "../../utils/checkout";
 import {
   getContractForRound,
@@ -139,6 +139,7 @@ export default function GameId() {
   };
 
   const handlePressMultiplier = async (_multiplier: number) => {
+    if (hapticsEnabled) triggerImpactLight().catch(() => {});
     await addDart(tempDart || 0, _multiplier);
     setShowMultiplier(false);
     setTempDart(null);
@@ -160,6 +161,10 @@ export default function GameId() {
         if (hapticsEnabled) triggerSuccess().catch(() => {});
       }
 
+      if (hapticsEnabled && !willFinishNow) {
+        triggerImpactLight().catch(() => {});
+      }
+
       const beforeRanking = ranking.length;
       await addDart(score, multiplier);
       const afterRanking = ranking.length;
@@ -176,6 +181,7 @@ export default function GameId() {
     } else {
       // Capital: simple ajout sans détection de finish immédiat
       await addDart(score, multiplier);
+      if (hapticsEnabled) triggerImpactLight().catch(() => {});
     }
   };
 
