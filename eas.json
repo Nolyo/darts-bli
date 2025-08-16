@@ -13,7 +13,10 @@
       "channel": "preview",
       "android": {
         "buildType": "apk",
-        "credentialsSource": "remote"
+        "credentialsSource": "remote",
+        "env": {
+          "EXPO_MODULES_AUTOLINKING_SKIP": "1"
+        }
       }
     },
     "production": {
