@@ -13,7 +13,10 @@
       "channel": "preview",
       "android": {
         "buildType": "apk",
-        "credentialsSource": "remote"
+        "credentialsSource": "remote",
+        "gradle": {
+          "buildVariant": "release"
+        }
       }
     },
     "production": {
@@ -26,7 +29,10 @@
       "channel": "preview",
       "android": {
         "buildType": "apk",
-        "credentialsSource": "remote"
+        "credentialsSource": "remote",
+        "gradle": {
+          "buildVariant": "release"
+        }
       }
     }
   },
